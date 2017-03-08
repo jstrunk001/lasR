@@ -120,10 +120,10 @@ gridmetrics=function(
   }
   br1=brick(lapply(fns,function(x,dat,rast,field)rasterize(x=dat,y=rast,fun=x,field=field),las_pts,r0,field="ht"))
 
-  #push to long format
+  #push to long format, write to csv
   xyz=as.data.frame(br1, xy=TRUE)
-
   write.csv(xyz,out_name,row.names=F)
+
   if(return) return(xyz)
 
 }
