@@ -180,7 +180,7 @@ scan_dtm=function(
 
     try(saveRDS(dtm_polys,polys_rds))
     try(maptools::writePolyShape(sp::SpatialPolygonsDataFrame(dtm_polys,headers),polys_shp))
-    try(write.csv(headers,dtm_id_csv, row.names = F, append=F))
+    try(write.csv(headers,dtm_id_csv, row.names = F))
 
   }
 }
