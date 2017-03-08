@@ -1,17 +1,16 @@
-#'@name points2polys
 #'@title
-#'  <Delete and Replace>
+#'  create polygons from dataframe of vertices and ids
 #'
 #'@description
-#'  <Delete and Replace>
+#'  create polygons from dataframe of vertices and ids
 #'
 #'@details
-#'  <Delete and Replace>
+#'  create polygons from dataframe of vertices and ids
 #'
 #'\cr
 #'Revision History
 #' \tabular{ll}{
-#'1.0 \tab date and revisions.. \cr
+#'1.0 \tab 2017 March 08 Created\cr
 #'}
 #'
 #'@author
@@ -21,10 +20,10 @@
 #'@param idxy dataframe with 3 columns - id, x, y - representing the id, x, and y of vertices of polygons
 #'
 #'@return
-#'  <Delete and Replace>
+#'  SpatialPolygons object
 #'
 #'@examples
-#'  <Delete and Replace>
+#'  none yet
 #'
 #'@import sp
 #'
@@ -39,11 +38,11 @@ points2polys=function(idxy){
 
   spl_idxy=split(idxy[,2:3], idxy[,1])
 
-  polys <- SpatialPolygons(
+  polys <- sp::SpatialPolygons(
 
     mapply(
       function(poly, id) {
-        Polygons(list(Polygon(poly)), ID=id)
+        sp::Polygons(list(sp::Polygon(poly)), ID=id)
       }
       , spl_idxy
       , names(spl_idxy))

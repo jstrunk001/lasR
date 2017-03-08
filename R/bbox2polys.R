@@ -1,31 +1,32 @@
 #'@title
-#'  <Delete and Replace>
+#'  create polygons from dataframe of bounding coordinates and ids
 #'
 #'@description
-#'  <Delete and Replace>
+#'  create polygons from dataframe of bounding coordinates and ids
 #'
 #'@details
-#'  <Delete and Replace>
+#'  create polygons from dataframe of bounding coordinates and ids
 #'
 #'\cr
 #'Revision History
 #' \tabular{ll}{
-#'1.0 \tab date and revisions.. \cr
+#'1.0 \tab 2017 March 08 Created\cr
 #'}
 #'
 #'@author
 #'
 #'Jacob Strunk <Jstrunk@@fs.fed.us>
 #'
-#'@param idxxyy dataframe with 5 columns - id, minx,maxx, miny, maxy - representing the id, x, and y of vertices of polygons
+#'@param idxxyy dataframe with 5 columns - id, minx,maxx, miny, maxy - representing the id, and bounding x,y of polygons
 #'
 #'@return
-#'  <Delete and Replace>
+#'  SpatialPolygons object
 #'
 #'@examples
-#'  <Delete and Replace>
+#'  none yet
 #'
 #'@importFrom plyr rbind.fill
+#'@import sp
 #'
 #'@export
 #

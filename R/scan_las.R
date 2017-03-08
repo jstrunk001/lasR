@@ -2,15 +2,15 @@
 #'  scan las files and add them to summary table
 #'
 #'@description
-#'  <Delete and Replace>
+#'  scan las files and add them to summary table
 #'
 #'@details
-#'  <Delete and Replace>
+#'  scan las files and add them to summary table
 #'
 #'\cr
 #'Revision History
 #' \tabular{ll}{
-#'1.0 \tab date and revisions.. \cr
+#'1.0 \tab 2017 March 08 Created\cr
 #'}
 #'
 #'@author
@@ -39,7 +39,7 @@
 #'}
 #'scan_las(project="test1", project_year="2015",dir_las="C:\\temp\\lidar_test\\",con=con_inv)
 #'
-#'@import RPostgreSQL, maptools
+#'@import RPostgreSQL, maptools, sp
 #'
 #'@export
 #
@@ -157,22 +157,26 @@ scan_las=function(
     if(sum(!cols_las_db_ok)>0)
       stop(paste("Column names in database table",las_table,"are not correct for 'scan_las'!\n They should be: project_id,project,project_year,las_id,file_name,load_date,min_x,min_y,max_x,max_y,file_path,notes"))
     headers_cols=headers[,cols_las_db]
-    dbWriteTable(con,las_table2,headers_cols,append=T,row.names=F)
 
-    write.csv(headers_cols,las_id_csv, row.names = F, append=F)
+    #save outputs
+    dbWriteTable(con,las_table2,headers_cols,append=T,row.names=F)
 
   }
 
+
   if(create_polys){
-    browser()
-    headers_cols=dbReadTable(con,las_table2,headers_cols,append=T,row.names=F)
+
+    headers=dbReadTable(con,las_table2)
 
     polys_rds=paste(project_id_folder,"las_polys.rds",sep="")
     polys_shp=paste(project_id_folder,"las_polys.shp",sep="")
 
-    las_polys=bbox2polys(headers_cols[headers_cols,c("las_id","min_x","max_x","min_y","max_y")])
-    saveRDS(las_polys,polys_rds)
-    writePolyShape(las_polys,polys_shp)
+    las_polys=bbox2polys(headers[,c("las_id","min_x","max_x","min_y","max_y")])
+
+    #save outputs
+    try(saveRDS(las_polys,polys_rds))
+    try(maptools::writePolyShape(sp::SpatialPolygonsDataFrame(las_polys,headers),polys_shp))
+    try(write.csv(headers,las_id_csv, row.names = F))
 
   }
 

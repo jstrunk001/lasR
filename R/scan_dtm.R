@@ -1,16 +1,16 @@
 #'@title
-#'  <Delete and Replace>
+#'  scan a directory of dtm files
 #'
 #'@description
-#'  <Delete and Replace>
+#'  scan a directory of dtm files
 #'
 #'@details
-#'  <Delete and Replace>
+#'  scan a directory of dtm files
 #'
 #'\cr
 #'Revision History
 #' \tabular{ll}{
-#'1.0 \tab date and revisions.. \cr
+#'1.0 \tab 2017 March 08 Created\cr
 #'}
 #'
 #'@author
@@ -34,7 +34,7 @@
 #'@examples
 #'  <Delete and Replace>
 #'
-#'@import RPostgreSQL
+#'@import RPostgreSQL, maptools, sp
 #'
 #'@export
 #
@@ -57,6 +57,7 @@ scan_dtm=function(
   ,project_table="manage_dtm.dtm_projects"
   ,pattern="[.]dtm$"
   ,notes=""
+  ,create_polys=T
 
   ){
 
@@ -76,6 +77,8 @@ scan_dtm=function(
   project_id_csv=paste(project_id_folder,"project_id.csv",sep="")
   exist_project_id_folder=dir.exists(project_id_folder)
   exist_project_id_csv=file.exists(project_id_csv)
+
+  dtm_id_csv=paste(project_id_folder,"dtm_id.csv",sep="")
 
   if(!exist_project_id_folder) dir.create(project_id_folder)
   if(exist_project_id_csv) project_id_df=read.csv(project_id_csv)
@@ -158,9 +161,26 @@ scan_dtm=function(
 
     if(sum(!cols_dtm_db_ok)>0)
       stop(paste("Column names in database table",dtm_table,"are not correct for 'scan_dtm'!\n They should be: project_id,project,project_year,dtm_id,file_name,load_date,min_x,min_y,max_x,max_y,file_path,notes"))
+
     headers_cols=headers[,cols_dtm_db]
     dbWriteTable(con,dtm_table2,headers_cols,append=T,row.names=F)
 
-  }
 
   }
+
+
+  if(create_polys){
+
+    headers=dbReadTable(con,dtm_table2)
+
+    polys_rds=paste(project_id_folder,"dtm_polys.rds",sep="")
+    polys_shp=paste(project_id_folder,"dtm_polys.shp",sep="")
+
+    dtm_polys=bbox2polys(headers[,c("dtm_id","min_x","max_x","min_y","max_y")])
+
+    try(saveRDS(dtm_polys,polys_rds))
+    try(maptools::writePolyShape(sp::SpatialPolygonsDataFrame(dtm_polys,headers),polys_shp))
+    try(write.csv(headers,dtm_id_csv, row.names = F, append=F))
+
+  }
+}

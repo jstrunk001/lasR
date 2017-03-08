@@ -1,16 +1,16 @@
 #'@title
-#'  <Delete and Replace>
+#'  read an las file
 #'
 #'@description
-#'  <Delete and Replace>
+#'  read an las file
 #'
 #'@details
-#'  <Delete and Replace>
+#'  read an las file
 #'
 #'\cr
 #'Revision History
 #' \tabular{ll}{
-#'1.0 \tab date and revisions.. \cr
+#'1.0 \tab 2017 March 08 Created\cr
 #'}
 #'
 #'@author
@@ -28,14 +28,12 @@
 #'    print(read_header("C:\\temp\\lidar_test\\183_302.las"))
 #'    print(read_header(files))
 #'
+#'@import tools, sp
 #'
 #'@export
 #
-#'@seealso \code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+#'@seealso \code{\link{read_dtm}}\cr \code{\link{gridmetrics}}\cr
 
-#Desired upgrades to this function:
-#
-#
 
 read_las=function(path,...){
 

@@ -1,16 +1,16 @@
 #'@title
-#'  <Delete and Replace>
+#'  summarize lidar for raster pixels
 #'
 #'@description
-#'  <Delete and Replace>
+#'  summarize lidar for raster pixels
 #'
 #'@details
-#'  <Delete and Replace>
+#'  summarize lidar for raster pixels
 #'
 #'\cr
 #'Revision History
 #' \tabular{ll}{
-#'1.0 \tab date and revisions.. \cr
+#'1.0 \tab 2017 March 08 Created\cr
 #'}
 #'
 #'@author
@@ -129,9 +129,9 @@ gridmetrics=function(
 }
 
 
-dtms1="C:\\temp\\dtm_test\\"
-las1="C:\\temp\\lidar_test\\"
-las_files=list.files(las1,pattern="[.]las",full.names=T)
-dtm_files=list.files(dtms1,pattern="[.]dtm",full.names=T)
-metrics=gridmetrics(las_files=las_files,dtm_files=dtm_files)
-head(metrics)
+# dtms1="C:\\temp\\dtm_test\\"
+# las1="C:\\temp\\lidar_test\\"
+# las_files=list.files(las1,pattern="[.]las",full.names=T)
+# dtm_files=list.files(dtms1,pattern="[.]dtm",full.names=T)
+# metrics=gridmetrics(las_files=las_files,dtm_files=dtm_files)
+# head(metrics)
