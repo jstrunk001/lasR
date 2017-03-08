@@ -32,11 +32,8 @@
 #'
 #'@examples
 #'
-#' many_dtms=read_dtm(dir_dtm="c:\\temp\\")
-#' many_dtms=read_dtm_header(
-#'                                 dir_dtm="c:\\temp\\dtm_files"
-#'                                 ,out_file="c:\\temp\\headers.csv"
-#'       )
+#' many_dtms=read_dtm_header(dir_dtm="c:\\temp\\dtm_files" ,out_file="c:\\temp\\headers.csv")
+#'
 #' one_dtm=read_dtm_header("//dnrgpoly112/e$/rs_prototype/dtm/dtm_files/38_58.dtm")
 #'
 #'@import plyr
@@ -53,7 +50,6 @@ read_dtm=function(
   ,plot=F
   ,NA_val=-1
   ,return_polygon=F
-
 ){
 
   if(!is.na(dir_dtm) | length(dtm_files) > 1){
@@ -173,9 +169,9 @@ read_dtm_header=function(
         ,"units_z"=readBin(rBcon1[153:154], 'int', size = 2, n = 1)
         ,"z_format"=readBin(rBcon1[155:156], 'int', size = 2, n = 1)
         )
-        # ,"Formats 2.0+ - coordinate system (0 2-utm,3-state plane,4 unknown)"
-        # ,"Formats 3.1+ - horizontal datum"
-        # ,"Formats 3.1+ - vertical datum"
+        # ,"Formats 2.0+ - adds coordinate system (0 2-utm,3-state plane,4 unknown)"
+        # ,"Formats 3.1+ - adds horizontal datum"
+        # ,"Formats 3.1+ - adds vertical datum"
 
     close(con)
   }
