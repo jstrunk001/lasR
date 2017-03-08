@@ -1,0 +1,10 @@
+Package: lasR
+Type: Package
+Title: Simple lidar reading, processign 
+Version: 1.0.0
+Author: Jacob Strunk (jstrunk@fs.fed.us)
+Maintainer: Jacob Strunk (jstrunk@fs.fed.us)
+Description: Currently reads las files and create rasters from poitns
+License: GPL3
+Encoding: UTF-8
+LazyData: true
