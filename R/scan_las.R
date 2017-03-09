@@ -172,10 +172,11 @@ scan_las=function(
     polys_shp=paste(project_id_folder,"las_polys.shp",sep="")
 
     las_polys=bbox2polys(headers[,c("las_id","min_x","max_x","min_y","max_y")])
+    las_polys=sp::SpatialPolygonsDataFrame(las_polys,headers)
 
     #save outputs
     try(saveRDS(las_polys,polys_rds))
-    try(maptools::writePolyShape(sp::SpatialPolygonsDataFrame(las_polys,headers),polys_shp))
+    try(maptools::writePolyShape(las_polys,polys_shp))
     try(write.csv(headers,las_id_csv, row.names = F))
 
   }

@@ -177,9 +177,10 @@ scan_dtm=function(
     polys_shp=paste(project_id_folder,"dtm_polys.shp",sep="")
 
     dtm_polys=bbox2polys(headers[,c("dtm_id","min_x","max_x","min_y","max_y")])
+    dtm_polys=sp::SpatialPolygonsDataFrame(dtm_polys,headers)
 
     try(saveRDS(dtm_polys,polys_rds))
-    try(maptools::writePolyShape(sp::SpatialPolygonsDataFrame(dtm_polys,headers),polys_shp))
+    try(maptools::writePolyShape(dtm_polys,polys_shp))
     try(write.csv(headers,dtm_id_csv, row.names = F))
 
   }
