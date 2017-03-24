@@ -34,7 +34,7 @@
 #'@examples
 #'  <Delete and Replace>
 #'
-#'@import RPostgreSQL, maptools, sp
+#'@import maptools, sp, uuid
 #'
 #'@export
 #
@@ -59,7 +59,7 @@ scan_dtm=function(
 ){
 
   require("uuid")
-  require("RSQLite")
+  #require("RSQLite")
 
   proc_date=Sys.time()
 
@@ -148,7 +148,6 @@ scan_dtm=function(
     write.csv(dtm_id_df,dtm_id_csv)
 
   }
-
 
   if(create_polys){
 
