@@ -22,9 +22,6 @@
 #'@param proj4_name human interpretable name of projection
 #'@param proj4 proj4 string for projection
 #'@param dir_dtm where to find dtm files
-#'@param con  postgres connection
-#'@param dtm_table table to put individual dtm tile records
-#'@param project_table table with dtm projects (e.g. for a state or project...)
 #'@param pattern pattern to use in searching for las files
 #'@param notes and descriptionn that may be helpful in using a project
 #'
@@ -113,16 +110,12 @@ scan_dtm=function(
     #get lidar headers
     headers=read_dtm_header(files_dtm)
 
-    #generate ids
-    dtm_id_max=max(0,unlist(dbGetQuery(con,paste("select max(dtm_id) from",dtm_table))),na.rm=T)
-    ids_dtm=seq(1:nrow(headers))+dtm_id_max
-
     #prep data for database
     names(headers)=gsub("max","max_",gsub("min","min_",tolower(names(headers))))
     headers[,"project_id"]=proj_id
     headers[,"project"]=project
     headers[,"project_year"]=project_year
-    headers[,"dtm_id"]=ids_dtm
+    headers[,"dtm_id"]=sapply(1:nrow(headers),function(x)UUIDgenerate())
     headers[,"file_name"]=basename(files_dtm)
     headers[,"file_path"]=files_dtm
     headers[,"load_date"]=proc_date
