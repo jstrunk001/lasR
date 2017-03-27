@@ -40,12 +40,6 @@
 #
 #'@seealso \code{\link{scan_las}}\cr \code{\link{read_dtm}}\cr \code{\link{read_dtm_header}}\cr
 
-#Desired upgrades to this function:
-#
-#
-
-
-
 scan_dtm=function(
   project="wa_dtm"
   ,project_year="2099"
@@ -66,9 +60,6 @@ scan_dtm=function(
   files_dtm=list.files(dir_dtm,full.names=T,recursive=F,include.dirs = FALSE,pattern=pattern)
   if(length(files_dtm)==0) stop("'scan_dtm' argument dir_dtm is not a directory or is empty")
 
-  # #get project id if it exists
-  # proj_id=unlist(dbGetQuery(con,paste("select project_id from",project_table,"where project = ",paste("'",project,"'",sep=""),"and project_year = ",project_year)))
-
   #prepare / read project_id file
   project_id_folder=paste(dir_dtm,"/manage_dtm/",sep="")
   project_id_csv=paste(project_id_folder,"project_id.csv",sep="")
@@ -77,7 +68,6 @@ scan_dtm=function(
   exist_project_id_folder=dir.exists(project_id_folder)
   exist_project_id_csv=file.exists(project_id_csv)
   exist_dtm_id_csv=file.exists(dtm_id_csv)
-
 
   if(!exist_project_id_folder) dir.create(project_id_folder)
 
@@ -109,12 +99,10 @@ scan_dtm=function(
   disclaimer_txt=paste(project_id_folder,"DISCLAIMER.txt",sep="")
   writeLines(disclaimer,disclaimer_txt)
 
-
   #check if dtm files exist
   names_dtm=basename(files_dtm)
   names_dtm_exist = names_dtm %in% dtm_id_df$file_name
   dtm_update = sum(!names_dtm_exist) > 0
-
 
   #update dtms
   if(dtm_update){
