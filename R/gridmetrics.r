@@ -128,10 +128,3 @@ gridmetrics=function(
 
 }
 
-
-# dtms1="C:\\temp\\dtm_test\\"
-# las1="C:\\temp\\lidar_test\\"
-# las_files=list.files(las1,pattern="[.]las",full.names=T)
-# dtm_files=list.files(dtms1,pattern="[.]dtm",full.names=T)
-# metrics=gridmetrics(las_files=las_files,dtm_files=dtm_files)
-# head(metrics)
