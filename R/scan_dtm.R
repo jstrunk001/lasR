@@ -145,7 +145,6 @@ scan_dtm=function(
 
     try(saveRDS(dtm_polys,polys_rds))
     try(maptools::writePolyShape(dtm_polys,polys_shp))
-    try(write.csv(headers,dtm_id_csv, row.names = F))
 
   }
 }

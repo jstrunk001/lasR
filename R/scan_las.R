@@ -142,7 +142,6 @@ scan_las=function(
     #save outputs
     try(saveRDS(las_polys,polys_rds))
     try(maptools::writePolyShape(las_polys,polys_shp))
-    try(write.csv(las_id_df,las_id_csv, row.names = F))
 
   }
 
