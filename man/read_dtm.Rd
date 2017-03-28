@@ -44,11 +44,8 @@ Revision History
 }
 \examples{
 
-many_dtms=read_dtm(dir_dtm="c:\\\\temp\\\\")
-many_dtms=read_dtm_header(
-                                dir_dtm="c:\\\\temp\\\\dtm_files"
-                                ,out_file="c:\\\\temp\\\\headers.csv"
-      )
+many_dtms=read_dtm_header(dir_dtm="c:\\\\temp\\\\dtm_files" ,out_file="c:\\\\temp\\\\headers.csv")
+
 one_dtm=read_dtm_header("//dnrgpoly112/e$/rs_prototype/dtm/dtm_files/38_58.dtm")
 
 }

@@ -7,9 +7,7 @@
 scan_las(project = "some_project", project_year = "2099",
   proj4_name = "NAD_1983_HARN_StatePlane_Washington_South_FIPS_4601_Feet",
   proj4 = "1395 +proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs",
-  dir_las = "", con, las_table = "manage_las.las_files",
-  project_table = "manage_las.las_projects", pattern = "[.]la.$",
-  create_polys = T)
+  dir_las = "", pattern = "[.]la.$", notes = "", create_polys = T)
 }
 \arguments{
 \item{project}{name of lidar project}
@@ -21,12 +19,6 @@ scan_las(project = "some_project", project_year = "2099",
 \item{proj4}{proj4 string for projection}
 
 \item{dir_las}{where to find lidar files}
-
-\item{con}{postgres connection}
-
-\item{las_table}{table to put individual las tile records}
-
-\item{project_table}{table with las projects (e.g. an acquisition)}
 
 \item{pattern}{pattern to use in searching for las files}
 
@@ -48,10 +40,7 @@ Revision History
 }
 }
 \examples{
-if(!"con_inv" \%in\% ls()){
- library("RPostgreSQL")
- con_inv=dbConnect(dbDriver("PostgreSQL"),dbname="inventory",host="localhost",port="5432",user="postgres",password="0000")
-}
+
 scan_las(project="test1", project_year="2015",dir_las="C:\\\\temp\\\\lidar_test\\\\",con=con_inv)
 
 }

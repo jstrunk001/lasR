@@ -1,51 +1,88 @@
-#' tile_project=function(
-#'
-#'   dir_las
-#'   ,dir_dtm
-#'   ,project_folder="c:/lidar_projects/"
-#'   ,project_name="test_project"
-#'   ,project_year="2099"
-#'   ,inventory_dtms=T
-#'   ,inventory_las=T
-#'   ,create_project=T
-#'   ,tile_size=1650
-#'   ,pixel_size=66
-#'   ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066,resolution=1650
-#'
-#' ){
-#'
-#'   require("DBI")
-#'   require("RSQLite")
-#'
-#'   #test for what already exists
-#'     #sqlite database
-#'     #las inventory
-#'     #dtm inventory
-#'
-#'   #create sqlite database / tables
-#'
-#'
-#'   #inventory las and dtms
-#'   scan_las(project=project_name, project_year="2015",dir_las=dir_las,con=con_proj)
-#'   scan_dtm(project=project_name, project_year="2015",dir_dtm=dir_dtm,con=con_proj)
-#'
-#'
-#'   #create processing and sub-processing tiles
-#'
-#'
-#'   #intersect tiles with polygons
-#'
-#'
-#'   #create dataframe from dtm and las intersections on tiles
-#'
-#'
-#'   #save everything to sqlite database
-#'
-#'
-#'   #return something
-#'
-#'
-#' }
+tile_project=function(
+
+  dir_las=NA
+  ,dir_dtm=NA
+  ,dir_project="c:/lidar_projects/"
+  ,project_dtm="test_project"
+  ,project_las="test_project"
+  ,dtm_year="2099"
+  ,dlas_year="2099"
+  ,inventory_dtms=T
+  ,inventory_las=T
+  ,create_project=T
+  ,tile_size=1650
+  ,pixel_size=66
+  ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066,resolution=1650
+  ,crs="+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs"
+
+){
+
+  require("DBI")
+  require("RSQLite")
+  require("data.table")
+
+  #test for what already exists
+    #sqlite database
+    #las inventory
+    #dtm inventory
+
+  #create sqlite database / tables
+
+
+  #inventory las and dtms
+  if(scan_las) scan_las(project=project_las, project_year=las_year,dir_las=dir_las)
+  if(scan_dtm) scan_dtm(project=project_dtm, project_year=dtm_year,dir_dtm=dir_dtm)
+
+  #read in las and dtm polygons
+  dtm_polys=readOGR()
+  las_polys=readOGR()
+
+  #buffer polygons
+  dtm_polys1=buffer(dtm_polys,pixel_size*2+1,dissolve=F)
+  las_polys1=buffer(las_polys,pixel_size*2+1,dissolve=F)
+
+  #create processing tiles
+  proc_rast=raster(xmn=xmn,xmx=xmx,ymn=mn,ymx=ymx,resolution=resolution,crs=crs)
+  proc_rast[]=cellsFromExtent(proc_rast,extent(proc_rast))
+
+  #create sub-processing tiles (100x density)
+  proc_rast1=raster(xmn=xmn,xmx=xmx,ymn=mn,ymx=ymx,resolution=resolution/10,crs=crs)
+  xy=as.data.frame(proc_rast1,xy=T)
+  xy[,"layer"]=NULL
+  xy[,"tile_id"]=cellFromXY(proc_rast, xy[,c(1:2)])
+  proc_rast1[]=xy[,"tile_id"]
+  proc_rast2=rasterFromXYZ(xy[,c("x","y","tile_id")])
+
+  #intersect tiles with polygons
+  ex_dtm=extract(proc_rast2,dtm_polys1);gc()
+  ex_dtm1=lapply(ex_dtm,unique);gc()
+  names(ex_dtm1)=dtm_polys1$file_path
+  ex_las=extract(proc_rast2,las_polys1);gc()
+  ex_las1=lapply(ex_las,unique);gc()
+  names(ex_las1)=las_polys1$file_path
+
+  #create dataframe from dtm and las intersections on tiles
+  tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
+  sum(duplicated(tiles_las_df[,"las_file"]))
+
+  tiles_dtm_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,dtm_file=file,stringsAsFactors=F)},ex_dtm1,names(ex_dtm1),SIMPLIFY=F)))
+  sum(duplicated(tiles_dtm_df[,"dtm_file"]))
+
+  tiles_dtm_agg=aggregate(dtm_file~tile_id,data=tiles_dtm_df,FUN=function(x)paste(unique(x),collapse=","))
+  tiles_las_agg=aggregate(las_file~tile_id,data=tiles_las_df,FUN=function(x)paste(unique(x),collapse=","))
+
+  tiles_las_dtm=merge(tiles_las_agg,tiles_dtm_agg,by="tile_id")
+
+  #save everything to sqlite database?
+
+
+  #write data to csv file?
+
+
+  #return something?
+  write.csv(tiles_las_dtm,"somefile somewheere")
+
+}
 #'
 #'
 #'

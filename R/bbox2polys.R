@@ -35,10 +35,12 @@
 #'@export
 bbox2polys=function(idxxyy){
 
-
-
   idxy_in=plyr::rbind.fill(
-    apply(idxxyy,1,function(x) data.frame(id=x[1],x=x[c(2,2,3,3,2)],y=x[c(4,5,5,4,4)],row.names=NULL))
+    apply(idxxyy,1,function(x) data.frame(id=x[1]
+                                          ,x=as.numeric(x[c(2,2,3,3,2)])
+                                          ,y=as.numeric(x[c(4,5,5,4,4)])
+                                          ,row.names=NULL,stringsAsFactors=F)
+          )
   )
 
   points2polys(idxy_in)

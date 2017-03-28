@@ -32,7 +32,7 @@
 #'
 #'scan_las(project="test1", project_year="2015",dir_las="C:\\temp\\lidar_test\\",con=con_inv)
 #'
-#'@import maptools, sp, uuid
+#'@import maptools sp uuid
 #'
 #'@export
 #
@@ -50,6 +50,7 @@ scan_las=function(
     ,create_polys=T
     ){
 
+  require(uuid)
 
   proc_date=Sys.time()
 
@@ -65,7 +66,7 @@ scan_las=function(
   exist_project_id_csv=file.exists(project_id_csv)
   exist_las_id_csv=file.exists(las_id_csv)
 
-  if(!exist_project_id_folder) dir.create(project_id_folder)
+  if(!exist_project_id_folder) dir.create(project_id_folder,recursive=T)
 
   if(exist_project_id_csv){
 
@@ -90,6 +91,8 @@ scan_las=function(
 
   }
 
+  proj_id=project_id_df[1,"project_id"]
+
   #write little disclaimer / meta file to folder e.g. what is this crap in this folder
   disclaimer="This folder contains files used to inventory las/laz files."
   disclaimer_txt=paste(project_id_folder,"DISCLAIMER.txt",sep="")
@@ -109,10 +112,6 @@ scan_las=function(
     #get lidar headers
     headers=read_header(files_las)
 
-    #generate ids
-    las_id_max=max(0,unlist(dbGetQuery(con,paste("select max(las_id) from",las_table))),na.rm=T)
-    ids_las=seq(1:nrow(headers))+las_id_max
-
     #prep data for database
     names(headers)=gsub("max","max_",gsub("min","min_",tolower(names(headers))))
     headers[,"project_id"]=proj_id
@@ -131,18 +130,19 @@ scan_las=function(
 
   if(create_polys){
 
-    headers=dbReadTable(con,las_table2)
+    las_id_df=read.csv(las_id_csv,stringsAsFactors =F)
 
     polys_rds=paste(project_id_folder,"las_polys.rds",sep="")
     polys_shp=paste(project_id_folder,"las_polys.shp",sep="")
 
-    las_polys=bbox2polys(headers[,c("las_id","min_x","max_x","min_y","max_y")])
-    las_polys=sp::SpatialPolygonsDataFrame(las_polys,headers)
+    las_polys=bbox2polys(las_id_df[,c("las_id","min_x","max_x","min_y","max_y")])
+    row.names(las_id_df)=las_id_df[,"las_id"]
+    las_polys=sp::SpatialPolygonsDataFrame(las_polys,las_id_df)
 
     #save outputs
     try(saveRDS(las_polys,polys_rds))
     try(maptools::writePolyShape(las_polys,polys_shp))
-    try(write.csv(headers,las_id_csv, row.names = F))
+    try(write.csv(las_id_df,las_id_csv, row.names = F))
 
   }
 

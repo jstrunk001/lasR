@@ -91,6 +91,8 @@ scan_dtm=function(
 
   }
 
+  proj_id=project_id_df[1,"project_id"]
+
   #write little disclaimer / meta file to folder e.g. what is this crap in this folder
   disclaimer="This folder contains files used to inventory dtm files."
   disclaimer_txt=paste(project_id_folder,"DISCLAIMER.txt",sep="")
@@ -138,7 +140,8 @@ scan_dtm=function(
     polys_shp=paste(project_id_folder,"dtm_polys.shp",sep="")
 
     dtm_polys=bbox2polys(dtm_id_df[,c("dtm_id","min_x","max_x","min_y","max_y")])
-    dtm_polys=sp::SpatialPolygonsDataFrame(dtm_polys,headers)
+    row.names(dtm_id_df)=dtm_id_df[,"dtm_id"]
+    dtm_polys=sp::SpatialPolygonsDataFrame(dtm_polys,dtm_id_df)
 
     try(saveRDS(dtm_polys,polys_rds))
     try(maptools::writePolyShape(dtm_polys,polys_shp))

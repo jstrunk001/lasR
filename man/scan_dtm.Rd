@@ -7,9 +7,7 @@
 scan_dtm(project = "wa_dtm", project_year = "2099",
   proj4_name = "NAD_1983_HARN_StatePlane_Washington_South_FIPS_4601_Feet",
   proj4 = "1395 +proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs",
-  dir_dtm = "", con, dtm_table = "manage_dtm.dtm_files",
-  project_table = "manage_dtm.dtm_projects", pattern = "[.]dtm$",
-  notes = "", create_polys = T)
+  dir_dtm = "", pattern = "[.]dtm$", notes = "", create_polys = T)
 }
 \arguments{
 \item{project}{name of lidar project}
@@ -21,12 +19,6 @@ scan_dtm(project = "wa_dtm", project_year = "2099",
 \item{proj4}{proj4 string for projection}
 
 \item{dir_dtm}{where to find dtm files}
-
-\item{con}{postgres connection}
-
-\item{dtm_table}{table to put individual dtm tile records}
-
-\item{project_table}{table with dtm projects (e.g. for a state or project...)}
 
 \item{pattern}{pattern to use in searching for las files}
 
