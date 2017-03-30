@@ -105,6 +105,8 @@ run_gridmetrics=function(
 #       )
 
     }
+
+    return(res_i)
   }
 
 }
@@ -119,7 +121,7 @@ run_gridmetrics=function(
 #
 if(F){
 
-  run_gridmetrics(
+  gmi=run_gridmetrics(
     tile_project="C:\\Temp\\naip_2015_t1650_p66\\test_project\\intersections.csv"
     ,dir_out="C:\\Temp\\naip_2015_t1650_p66\\test_project\\"
     ,gridmetrics=c("lasR")
