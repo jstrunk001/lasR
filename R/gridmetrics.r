@@ -67,7 +67,7 @@ gridmetrics=function(
 
   ,n_read=NA
 
-  ,out_name
+  ,out_name=NA
   ,return=F
 
 ){
@@ -97,8 +97,11 @@ gridmetrics=function(
     }
 
     #mosaic dtms
-    mos_dtm=do.call(function(x,y,...,fun=max)mosaic(x,y,...,fun=max),dtms)
-
+    if(class(dtms)=="list"){
+      if(length(dtms)>1) mos_dtm=do.call(function(x,y,...,fun=max)mosaic(x,y,...,fun=max),dtms)
+      else mos_dtm=dtms[[1]]
+    }
+    if(!class(dtms)=="list") mos_dtm=dtms
   }
 
   #difference points and rasters
@@ -118,15 +121,25 @@ gridmetrics=function(
   if(!inherits(grid,"raster")){
     r0=raster(overlap,resolution=res)
   }
+
   br1=brick(lapply(fns,function(x,dat,rast,field)rasterize(x=dat,y=rast,fun=x,field=field),las_pts,r0,field="ht"))
 
   #zero pixels without dem
-  if(!no_dtm) br1[is.null(mos_dtm)]=NA
+  if(!no_dtm){
+
+    br2=crop(br1,overlap);gc()
+    mos_dtm1=crop(mos_dtm,overlap);gc()
+    mos_dtm2=resample(mos_dtm1,br2);gc()
+    #mos_dtm2=aggregate(mos_dtm1,br2);gc()
+    br3=mask(br2,mos_dtm2);gc()
+    br1=br3;gc()
+
+  }
+
 
   #push to long format, write to csv
-  xyz=as.data.frame(br1, xy=TRUE)
-  write.csv(xyz,out_name,row.names=F)
-
+  xyz=as.data.frame(br1, xy=TRUE,na.rm=T)
+  if(!is.na(out_name)) write.csv(xyz,out_name,row.names=F)
   if(return) return(xyz)
 
 }
