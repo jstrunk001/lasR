@@ -68,27 +68,31 @@ run_gridmetrics=function(
 
     if(n_core>1){
       clus=makeCluster(n_core)
-      clusterEvalQ(clus,{library(lasR)})
+      clusterEvalQ(clus,{library(lasR);gc()})
+      # browser()
+      # tile_dat0=tile_dat
+      # tile_dat=tile_dat0[1:7,]
+      # tile_dat=tile_dat0[8:15,]
+      # tile_dat=tile_dat0[16:20,]
+      # tile_dat=tile_dat0[19:20,]
+
       res_i=clusterMap(
                     clus
-                   ,function(...)try(gridmetrics(...))
+                   ,gridmetrics
                    ,las_files=lapply(tile_dat[,"las_file"],function(...)unlist(strsplit(...)),",")
                    ,dtm_files=lapply(tile_dat[,"dtm_file"],function(...)unlist(strsplit(...)),",")
                    ,xmin=tile_dat[,c("mnx")],ymin=tile_dat[,c("mny")],xmax=tile_dat[,c("mxx")],ymax=tile_dat[,c("mxy")]
-                   ,MoreArgs=list(fns=fns,res=cellsize)
+                   ,MoreArgs=list(fns=fns,res=cellsize,return=T)
                    #,out_name=??
                    ,SIMPLIFY=F
-                  );gc()
+                  );gc();stopCluster(clus);gc()
+
     }
 
     if(n_core<2){
-#
-#       browser()
-#       tile_dat0=tile_dat
-#       tile_dat=tile_dat[7:9,]
 
       res_i=mapply(
-                function(...)try(gridmetrics(...))
+                gridmetrics
                ,las_files=lapply(tile_dat[,"las_file"],function(...)unlist(strsplit(...)),",")
                ,dtm_files=lapply(tile_dat[,"dtm_file"],function(...)unlist(strsplit(...)),",")
                ,xmin=tile_dat[,c("mnx")],ymin=tile_dat[,c("mny")],xmax=tile_dat[,c("mxx")],ymax=tile_dat[,c("mxy")]
@@ -96,13 +100,7 @@ run_gridmetrics=function(
                #,out_name=??
                ,SIMPLIFY=F
              );gc()
-#
-#       j=1
-#       gridmetrics(las_files=unlist(lapply(tile_dat[j,"las_file"],function(...)unlist(strsplit(...)),","))
-#                   ,dtm_files=unlist(lapply(tile_dat[j,"dtm_file"],function(...)unlist(strsplit(...)),","))
-#                   ,xmin=tile_dat[j,c("mnx")],ymin=tile_dat[j,c("mny")],xmax=tile_dat[j,c("mxx")],ymax=tile_dat[j,c("mxy")]
-#
-#       )
+
 
     }
 
@@ -125,7 +123,7 @@ if(F){
     tile_project="C:\\Temp\\naip_2015_t1650_p66\\test_project\\intersections.csv"
     ,dir_out="C:\\Temp\\naip_2015_t1650_p66\\test_project\\"
     ,gridmetrics=c("lasR")
-    ,n_core=1
+    ,n_core=7
     )
 
 }

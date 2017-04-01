@@ -68,7 +68,7 @@ gridmetrics=function(
   ,n_read=NA
 
   ,out_name=NA
-  ,return=F
+  ,return=T
 
 ){
   require(raster)
@@ -95,7 +95,7 @@ gridmetrics=function(
       dtms=lapply(dtms,raster)
 
     }
-
+print("mosaic dtms")
     #mosaic dtms
     if(class(dtms)=="list"){
       if(length(dtms)>1) mos_dtm=do.call(function(x,y,...,fun=max)mosaic(x,y,...,fun=max),dtms)
@@ -110,20 +110,26 @@ gridmetrics=function(
   coordinates(las_pts)=~X+Y
 
   #rasterize point data
+print("intersect overlaps")
 
   #define overlap
   if(!no_dtm) overlap=intersect(extent(las_pts),extent(mos_dtm))
   if(no_dtm) overlap=extent(las_pts)
   if(!is.na(xmin)) overlap=intersect(overlap,extent(xmin,xmax, ymin, ymax))
 
+  if(class(overlap)=="integer") {
+    warning("nothing to process, too little or no intersection for ",las_files," ",dtm_files)
+    return()
+  }
+
   #create processing grid
   if(inherits(grid,"raster")) r0=grid
   if(!inherits(grid,"raster")){
     r0=raster(overlap,resolution=res)
   }
-
+print("rasterize")
   br1=brick(lapply(fns,function(x,dat,rast,field)rasterize(x=dat,y=rast,fun=x,field=field),las_pts,r0,field="ht"))
-
+print("zero pixels")
   #zero pixels without dem
   if(!no_dtm){
 
@@ -136,7 +142,7 @@ gridmetrics=function(
 
   }
 
-
+print("push to long format")
   #push to long format, write to csv
   xyz=as.data.frame(br1, xy=TRUE,na.rm=T)
   if(!is.na(out_name)) write.csv(xyz,out_name,row.names=F)
