@@ -91,6 +91,15 @@ run_gridmetrics=function(
 
     if(n_core<2){
 
+      # tile_dat0=tile_dat
+      # tile_dat=tile_dat0[1:2,]
+      # # browser()
+      tile_dat0=tile_dat
+      # tile_dat=tile_dat0[1:7,]
+      # tile_dat=tile_dat0[8:15,]
+      # tile_dat=tile_dat0[16:20,]
+      tile_dat=tile_dat0[19:20,]
+
       res_i=mapply(
                 gridmetrics
                ,las_files=lapply(tile_dat[,"las_file"],function(...)unlist(strsplit(...)),",")
@@ -123,7 +132,7 @@ if(F){
     tile_project="C:\\Temp\\naip_2015_t1650_p66\\test_project\\intersections.csv"
     ,dir_out="C:\\Temp\\naip_2015_t1650_p66\\test_project\\"
     ,gridmetrics=c("lasR")
-    ,n_core=7
+    ,n_core=1
     )
 
 }

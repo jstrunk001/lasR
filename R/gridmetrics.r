@@ -69,6 +69,8 @@ gridmetrics=function(
 
   ,out_name=NA
   ,return=T
+  ,con=NA
+  ,out_table=""
 
 ){
   require(raster)
@@ -145,6 +147,7 @@ print("zero pixels")
 print("push to long format")
   #push to long format, write to csv
   xyz=as.data.frame(br1, xy=TRUE,na.rm=T)
+  if(!is.na(out_tab)) dbWriteTable(con,out_table,xyz)
   if(!is.na(out_name)) write.csv(xyz,out_name,row.names=F)
   if(return) return(xyz)
 

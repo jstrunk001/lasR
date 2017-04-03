@@ -79,7 +79,7 @@ tile_project=function(
   ,pixel_size=66
   ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
   ,crs="+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs"
-
+  ,mask=NA
 ){
 
   require("DBI")
@@ -123,6 +123,11 @@ tile_project=function(
   xy1[,"layer"]=NULL;gc()
   xy1[,"tile_id"]=cellFromXY(proc_rast, xy1[,c(1:2)]);gc()
   proc_rast1[]=xy1[,"tile_id"];gc()
+
+  #mask if desired
+  mask1=buffer(mask,tile_size)
+  proc_rast=crop(proc_rast,mask1)
+  proc_rast1=crop(proc_rast1,mask1)
 
   #intersect tiles with polygons
   ex_dtm=extract(proc_rast1,dtm_polys1);gc()
