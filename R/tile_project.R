@@ -81,7 +81,7 @@ tile_project=function(
   ,crs="+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs"
   ,mask=NA
 ){
-
+  Sys.time()
   require("DBI")
   require("RSQLite")
   require("data.table")
@@ -89,6 +89,8 @@ tile_project=function(
   require("rgeos")
   require("sp")
   require("raster")
+
+  warning("UPDATE ME!!! Allow me to 'update' intersections without complete reset")
 
   #create project folder
   project_path=file.path(dir_project,project)
@@ -111,44 +113,50 @@ tile_project=function(
   #buffer polygons
   dtm_polys1=buffer(dtm_polys,pixel_size*2+1,dissolve=F);gc()
   las_polys1=buffer(las_polys,pixel_size*2+1,dissolve=F);gc()
-
+print("buffer");Sys.time()
   #create processing tiles
   proc_rast=raster(xmn=xmn,xmx=xmx,ymn=ymn,ymx=ymx,resolution=tile_size,crs=crs);gc()
   proc_rast[]=cellsFromExtent(proc_rast,extent(proc_rast));gc()
   xy=as.data.frame(proc_rast,xy=T)
-
+print("tile scheme");Sys.time()
   #create sub-processing tiles (100x density) for intersection with polygons
   proc_rast1=raster(xmn=xmn,xmx=xmx,ymn=xmn,ymx=ymx,resolution=tile_size/10,crs=crs);gc()
   xy1=as.data.frame(proc_rast1,xy=T);gc()
   xy1[,"layer"]=NULL;gc()
   xy1[,"tile_id"]=cellFromXY(proc_rast, xy1[,c(1:2)]);gc()
   proc_rast1[]=xy1[,"tile_id"];gc()
-
+print("sub-tiles to fix edge problem");Sys.time()
   #mask if desired
-  mask1=buffer(mask,tile_size)
-  proc_rast=crop(proc_rast,mask1)
-  proc_rast1=crop(proc_rast1,mask1)
-
+  if(!is.na(mask[1])){
+    mask1=buffer(mask,tile_size)
+    proc_rast=crop(proc_rast,mask1)
+    proc_rast1=crop(proc_rast1,mask1)
+  }
+print("mask");Sys.time()
   #intersect tiles with polygons
   ex_dtm=extract(proc_rast1,dtm_polys1);gc()
-  ex_dtm1=lapply(ex_dtm,unique);gc()
-  names(ex_dtm1)=dtm_polys1$file_path
+  names(ex_dtm)=dtm_polys1$file_path
+  ex_dtm1=lapply(ex_dtm[sapply(ex_dtm,length)>0],unique);gc()
+
+print("extract dtm polygons");Sys.time()
   ex_las=extract(proc_rast1,las_polys1);gc()
-  ex_las1=lapply(ex_las,unique);gc()
-  names(ex_las1)=las_polys1$file_path
+  names(ex_las)=las_polys1$file_path
+  ex_las1=lapply(ex_las[sapply(ex_las,length)>0],unique);gc()
+
+print("extract las polygons");Sys.time()
 
   #create dataframe from dtm and las intersections on tiles
   tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
-  sum(duplicated(tiles_las_df[,"las_file"]))
-
+  #sum(duplicated(tiles_las_df[,"las_file"]))
+print("create dataframe from dtm and las intersections on tiles A");Sys.time()
   tiles_dtm_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,dtm_file=file,stringsAsFactors=F)},ex_dtm1,names(ex_dtm1),SIMPLIFY=F)))
-  sum(duplicated(tiles_dtm_df[,"dtm_file"]))
-
+  #sum(duplicated(tiles_dtm_df[,"dtm_file"]))
+print("create dataframe from dtm and las intersections on tiles B");Sys.time()
   tiles_dtm_agg=aggregate(dtm_file~tile_id,data=tiles_dtm_df,FUN=function(x)paste(unique(x),collapse=","))
   tiles_las_agg=aggregate(las_file~tile_id,data=tiles_las_df,FUN=function(x)paste(unique(x),collapse=","))
-
+print("create dataframe from dtm and las intersections on tiles C");Sys.time()
   tiles_las_dtm=merge(tiles_las_agg,tiles_dtm_agg,by="tile_id")
-
+print("Merge")
   #add tile bounds
   tiles_coords=merge(x=tiles_las_dtm,y=xy,by.x="tile_id",by.y="layer")
   crd=tiles_coords[,c("x","y")]

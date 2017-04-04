@@ -21,7 +21,6 @@
 #'@param dtm_files optional list of paths to dtms
 #'@param dtm_folder optional folder of dtms
 #'@param dtm_ext what is the file extension of dtms
-#'@param no_dtm don't use dtms? - otherwise dtms are required
 #'@param intersect_only only provide outputs over areas in which lidar and dtms intersect?
 #'@param fns list of functions that will be used to generate columns of summary statistics from the las data
 #'@param xmin (optional) force extent of analysis
@@ -55,7 +54,6 @@ gridmetrics=function(
   ,dtm_folder=NA
   ,dtm_ext=".dtm"
   ,no_dtm=F
-  ,intersect_only=T
   ,fns=list(min=min,max=max,mean=mean,sd=sd,p20=function(x,...)quantile(x,.2,...))
   ,xmin=NA
   ,xmax=NA

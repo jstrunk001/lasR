@@ -37,6 +37,7 @@ run_gridmetrics=function(
 
   #get project data
   tile_dat=read.csv(tile_project)
+  tile_dat[,"outf"]=paste(gm_out,tile_dat[,"tile_id"],".csv",sep="")
 
   #prepare batch commands
   if(do_fusion){
@@ -48,7 +49,7 @@ run_gridmetrics=function(
                               ," /cellbuffer:2 /gridxy:"
                               ,apply(tile_dat[,c("mnx","mny","mxx","mxy")],1,paste,collapse=",")
                               ,sep="")
-    tile_dat[,"outf"]=paste(gm_out,tile_dat[,"tile_id"],".csv",sep="")
+
 
     if(!is.null(fusion_switches)) coms_df=data.frame(paste(gridmetrics_type[1],fusion_switches),tile_dat[,c("switches","dtm_txt")],heightbreak,cellsize,tile_dat[,"outf"],tile_dat[,"las_txt"])
     if(is.null(fusion_switches)) coms_df=data.frame(gridmetrics_type[1],tile_dat[,c("switches","dtm_txt")],heightbreak,cellsize,tile_dat[,"outf"],tile_dat[,"las_txt"])
@@ -69,12 +70,13 @@ run_gridmetrics=function(
     if(n_core>1){
       clus=makeCluster(n_core)
       clusterEvalQ(clus,{library(lasR);gc()})
-      # browser()
+      browser()
       # tile_dat0=tile_dat
       # tile_dat=tile_dat0[1:7,]
       # tile_dat=tile_dat0[8:15,]
       # tile_dat=tile_dat0[16:20,]
       # tile_dat=tile_dat0[19:20,]
+
 
       res_i=clusterMap(
                     clus
@@ -82,8 +84,8 @@ run_gridmetrics=function(
                    ,las_files=lapply(tile_dat[,"las_file"],function(...)unlist(strsplit(...)),",")
                    ,dtm_files=lapply(tile_dat[,"dtm_file"],function(...)unlist(strsplit(...)),",")
                    ,xmin=tile_dat[,c("mnx")],ymin=tile_dat[,c("mny")],xmax=tile_dat[,c("mxx")],ymax=tile_dat[,c("mxy")]
-                   ,MoreArgs=list(fns=fns,res=cellsize,return=T)
-                   #,out_name=??
+                   ,MoreArgs=list(fns=fns,res=cellsize,return=F)
+                   ,out_name=tile_dat[,"outf"]
                    ,SIMPLIFY=F
                   );gc();stopCluster(clus);gc()
 
@@ -94,11 +96,11 @@ run_gridmetrics=function(
       # tile_dat0=tile_dat
       # tile_dat=tile_dat0[1:2,]
       # # browser()
-      tile_dat0=tile_dat
+      #tile_dat0=tile_dat
       # tile_dat=tile_dat0[1:7,]
       # tile_dat=tile_dat0[8:15,]
       # tile_dat=tile_dat0[16:20,]
-      tile_dat=tile_dat0[19:20,]
+      #tile_dat=tile_dat0[19:20,]
 
       res_i=mapply(
                 gridmetrics
@@ -106,7 +108,7 @@ run_gridmetrics=function(
                ,dtm_files=lapply(tile_dat[,"dtm_file"],function(...)unlist(strsplit(...)),",")
                ,xmin=tile_dat[,c("mnx")],ymin=tile_dat[,c("mny")],xmax=tile_dat[,c("mxx")],ymax=tile_dat[,c("mxy")]
                ,MoreArgs=list(fns=fns,res=cellsize,return=T)
-               #,out_name=??
+               ,out_name=tile_dat[,"outf"]
                ,SIMPLIFY=F
              );gc()
 
@@ -118,21 +120,3 @@ run_gridmetrics=function(
 
 }
 
- #library(lasR)
-#
-#
-# # run_gridmetrics(
-# #   tile_project="C:\\Temp\\naip_2015_t1650_p66\\test_project\\intersections.csv"
-# #   ,dir_out="C:\\Temp\\naip_2015_t1650_p66\\test_project\\"
-# #   )
-#
-if(F){
-
-  gmi=run_gridmetrics(
-    tile_project="C:\\Temp\\naip_2015_t1650_p66\\test_project\\intersections.csv"
-    ,dir_out="C:\\Temp\\naip_2015_t1650_p66\\test_project\\"
-    ,gridmetrics=c("lasR")
-    ,n_core=1
-    )
-
-}
