@@ -78,7 +78,7 @@ gridmetrics=function(
   las_in=sapply(las_files,read_las,n_read=n_read,simplify=T)
   las_pts=rbind.fill(las_in["pts",])
   las_heads=rbind.fill(las_in["header",])
-
+browser()
   #get / merge dtms
   if(!no_dtm){
 

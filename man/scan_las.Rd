@@ -45,7 +45,7 @@ scan_las(project="test1", project_year="2015",dir_las="C:\\\\temp\\\\lidar_test\
 
 }
 \seealso{
-\code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+\code{\link{scan_dtm}}\cr \code{\link{read_las}}\cr
 }
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>

@@ -5,10 +5,10 @@
 \title{summarize lidar for raster pixels}
 \usage{
 gridmetrics(las_files, dtm_files = NA, dtm_folder = NA, dtm_ext = ".dtm",
-  no_dtm = F, intersect_only = T, fns = list(min = min, max = max, mean =
-  mean, sd = sd, p20 = function(x, ...) quantile(x, 0.2, ...)), xmin = NA,
-  xmax = NA, ymin = NA, ymax = NA, res = 66, grid = NA, n_read = NA,
-  out_name, return = F)
+  no_dtm = F, fns = list(min = min, max = max, mean = mean, sd = sd, p20 =
+  function(x, ...) quantile(x, 0.2, ...)), xmin = NA, xmax = NA,
+  ymin = NA, ymax = NA, res = 66, grid = NA, n_read = NA,
+  out_name = NA, return = T, con = NA, out_table = "")
 }
 \arguments{
 \item{las_files}{list of paths to las files}
@@ -18,10 +18,6 @@ gridmetrics(las_files, dtm_files = NA, dtm_folder = NA, dtm_ext = ".dtm",
 \item{dtm_folder}{optional folder of dtms}
 
 \item{dtm_ext}{what is the file extension of dtms}
-
-\item{no_dtm}{don't use dtms? - otherwise dtms are required}
-
-\item{intersect_only}{only provide outputs over areas in which lidar and dtms intersect?}
 
 \item{fns}{list of functions that will be used to generate columns of summary statistics from the las data}
 
@@ -36,6 +32,8 @@ gridmetrics(las_files, dtm_files = NA, dtm_folder = NA, dtm_ext = ".dtm",
 \item{res}{resolution of processing analysis in units of provided lidar / dtm}
 
 \item{grid}{pre-defined raster for analysis - lidar metrics are computed for each cell}
+
+\item{intersect_only}{only provide outputs over areas in which lidar and dtms intersect?}
 }
 \value{
 optional dataframe of xy coordinates for cell centers and additional columns of metrics

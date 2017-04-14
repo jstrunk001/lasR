@@ -166,6 +166,13 @@ print("Merge")
 
   #save everything to sqlite database?
 
+  #create polys from bboxs
+  browser
+  if(F){
+  tile_polys0=bbox2polys(tiles_bbx[,c("tile_id","mnx","mxx","mny","mxy")])
+  tile_polys1=SpatialPolygonsDataFrame(tile_polys0,tiles_bbx)
+  writeOGR(tile_polys1, project_path, "intersections", driver="ESRI Shapefile")
+  }
 
   #write data to csv file?
   out_csv=file.path(project_path,"intersections.csv")
