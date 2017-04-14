@@ -30,7 +30,7 @@
 #'  NULL
 #'
 #'@examples
-#'  tiles=select_tiles("C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A_lasR\\intersections.csv"
+#'  lasR_proj_small=lasR_subset("C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A_lasR\\intersections.csv"
 #'  ,"C:\\projects\\2017_WA_DSM_Pilot\\boundary\\extentB.shp"
 #'  ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A_lasR\\subset_project\\"
 #'  )
@@ -39,7 +39,7 @@
 #'
 #'@export
 #
-#'@seealso \code{\link{lasR_project}}\cr \code{\link{scan_las}}\cr
+#'@seealso \code{\link{lasR_project}}\cr \code{\link{scan_las}}\cr \code{\link{scan_dtm}}\cr
 
 #Desired upgrades to this function:
 #

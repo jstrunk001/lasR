@@ -37,7 +37,7 @@
 #'
 #'@examples
 #'
-#'  tile_project(
+#'  lasR_project(
 #'   dir_las="C:\\Temp\\las_test\\"
 #'   ,dir_dtm="C:\\Temp\\dtm_test\\"
 #'   ,dir_project="C:\\Temp\\naip_2015_t1650_p66\\"
@@ -63,7 +63,7 @@
 #'@seealso \code{\link{scan_dtm}}\cr \code{\link{scan_las}}\cr
 #'
 
-tile_project=function(
+lasR_project=function(
 
   dir_las=NA
   ,dir_dtm=NA
