@@ -23,7 +23,7 @@
 #'  SpatialPolygons object
 #'
 #'@examples
-#'  none yet
+#'  #none yet
 #'
 #'@importFrom plyr rbind.fill
 #'@import sp
