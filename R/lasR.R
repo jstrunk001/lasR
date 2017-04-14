@@ -1,9 +1,9 @@
 #'@name lasR
 #'@title
-#'  read and process lidar
+#'  <Delete and Replace>
 #'
 #'@description
-#'  package to proces lidar data
+#'  <Delete and Replace>
 #'
 #'@details
 #'  <Delete and Replace>
@@ -19,16 +19,23 @@
 #'Jacob Strunk <Jstrunk@@fs.fed.us>
 #'
 #'
+#'@return
+#'  <Delete and Replace>
 #'
+#'@examples
+#'  <Delete and Replace>
 #'
+#'@import some_package,some_package2
 #'
-#'@seealso \code{\link{lidR}}\cr \code{\link{rLIDAR}}\cr
+#'@export
+#
+#'@seealso \code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
 
 #Desired upgrades to this function:
 #
 #
 
-# x = function(x){}
+
 
 #copy function arguments and use this code to format arguments
 ##writeClipboard(paste(gsub("^[[:space:]]*[,]*","#'@param ",gsub("=.*"," ",readClipboard())),collapse="\n"))
