@@ -1,4 +1,3 @@
-#'@name lasR
 #'@title
 #'  <Delete and Replace>
 #'
@@ -36,7 +35,4 @@
 #
 
 
-
-#copy function arguments and use this code to format arguments
-##writeClipboard(paste(gsub("^[[:space:]]*[,]*","#'@param ",gsub("=.*"," ",readClipboard())),collapse="\n"))
-
+lasR=function(){}
