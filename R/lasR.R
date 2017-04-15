@@ -1,4 +1,3 @@
-#'@name lasR
 #'@title
 #'  stuff
 #'
@@ -11,7 +10,7 @@
 #'\cr
 #'Revision History
 #' \tabular{ll}{
-#'1.0 \tab 2017 APril 14 \cr
+#'1.0 \tab 2017 April 14 \cr
 #'}
 #'
 #'@author
@@ -25,10 +24,9 @@
 #'@examples
 #' stuff
 #'
-#'
-#'
+#'@export
 #'@seealso \code{\link{lidR}}\cr \code{\link{rLIDAR}}\cr
 
-.notFun=function(){}
+lasR=function(){}
 
 
