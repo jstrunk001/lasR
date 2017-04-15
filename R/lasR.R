@@ -1,16 +1,16 @@
 #'@title
-#'  stuff
+#'  Read and process lidar
 #'
 #'@description
-#'  stuff
+#'  Read and process lidar
 #'
 #'@details
-#'  stuff
+#'  Read and process lidar
 #'
 #'\cr
 #'Revision History
 #' \tabular{ll}{
-#'1.0 \tab 2017 April 14 \cr
+#'1.0 \tab 2017 April 14 Created \cr
 #'}
 #'
 #'@author
@@ -19,14 +19,13 @@
 #'
 #'
 #'@return
-#'  stuff
+#'  #stuff
 #'
 #'@examples
-#' stuff
+#' #stuff
 #'
-#'@export
 #'@seealso \code{\link{lidR}}\cr \code{\link{rLIDAR}}\cr
-
+#'
 lasR=function(){}
 
 
