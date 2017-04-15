@@ -1,3 +1,4 @@
+#'@name lasR
 #'@title
 #'  stuff
 #'
@@ -25,13 +26,9 @@
 #' stuff
 #'
 #'
-
-#
+#'
 #'@seealso \code{\link{lidR}}\cr \code{\link{rLIDAR}}\cr
 
-#Desired upgrades to this function:
-#
-#
-
+.notFun=function(){}
 
 
