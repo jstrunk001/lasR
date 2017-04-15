@@ -1,16 +1,16 @@
 #'@title
-#'  <Delete and Replace>
+#'  stuff
 #'
 #'@description
-#'  <Delete and Replace>
+#'  stuff
 #'
 #'@details
-#'  <Delete and Replace>
+#'  stuff
 #'
 #'\cr
 #'Revision History
 #' \tabular{ll}{
-#'1.0 \tab date and revisions.. \cr
+#'1.0 \tab 2017 APril 14 \cr
 #'}
 #'
 #'@author
@@ -19,20 +19,19 @@
 #'
 #'
 #'@return
-#'  <Delete and Replace>
+#'  stuff
 #'
 #'@examples
-#'  <Delete and Replace>
+#' stuff
 #'
-#'@import some_package,some_package2
 #'
-#'@export
+
 #
-#'@seealso \code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+#'@seealso \code{\link{lidR}}\cr \code{\link{rLIDAR}}\cr
 
 #Desired upgrades to this function:
 #
 #
 
 
-lasR=function(){}
+
