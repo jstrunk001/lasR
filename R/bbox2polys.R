@@ -30,7 +30,7 @@
 #'
 #'@export
 #
-#'@seealso \code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+#'@seealso \code{\link{scan_las}}\cr \code{\link{read_las}}\cr
 
 #'@export
 bbox2polys=function(idxxyy){

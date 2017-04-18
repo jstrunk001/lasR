@@ -24,6 +24,7 @@
 #'@param dir_dtm where to find dtm files
 #'@param pattern pattern to use in searching for las files
 #'@param notes and descriptionn that may be helpful in using a project
+#'@param create_polys output shapefiles of polygon bboxes
 #'
 #'@return
 #'  <Delete and Replace>
