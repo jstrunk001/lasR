@@ -29,7 +29,7 @@ Revision History
 
 }
 \seealso{
-\code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+\code{\link{scan_las}}\cr \code{\link{read_las}}\cr
 }
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>

@@ -23,6 +23,8 @@ scan_las(project = "some_project", project_year = "2099",
 \item{pattern}{pattern to use in searching for las files}
 
 \item{notes}{and descriptionn that may be helpful in using a project}
+
+\item{create_polys}{output shapefiles of polygon bboxes}
 }
 \value{
 <Delete and Replace>
