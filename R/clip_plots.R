@@ -39,7 +39,7 @@ clip_plots=function(
     if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(dirname(lasR_project_polys),basename(lasR_project_polys))
     if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
   }
-
+print("load lasR_project");print(Sys.time())
   #fix drive paths in lasR_project
   if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(proj_polys@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
   if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
@@ -124,6 +124,9 @@ clip_plots=function(
     lapply(spl_plots,.clip_plots,dir_out = dir_out)
   }
 
+  .clip_plots(spl_plots[[2]],dir_out = dir_out)
+
+
   #write shapefile of intersections
   dir_overlap=file.path(dir_out,"plot_tile_overlap")
   if(!dir.exists(dir_overlap)) dir.create(dir_overlap)
@@ -162,16 +165,46 @@ clip_plots=function(
   }
   return(x_in)
 }
-.try_clip_plots=function(...)try(.clip_plots(...))
+
+.try_clip_plots=function(...){
+
+  require(lasR)
+
+  .clip_plots=function(x,dir_out,return=F){
+
+    require(lidR)
+    require(lasR)
+
+    poly_coords=x@polygons[[1]]@Polygons[[1]]@coords
+
+    las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],","))[1])
+    dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],","))[1])
+    dtm_poly=crop(dtm_in,x)
+    las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
+    las_hts=lasnormalize(las_poly, dtm = dtm_poly)
+
+    #write to file
+    if(!dir.exists(dir_out))dir.create(dir_out)
+    out_file_i=file.path(dir_out,paste(names(x)[1],"_",x@data[,1],".las",sep=""))
+    writeLAS(las_hts,out_file_i)
+
+  }
+
+  try(.clip_plots(...))
+
+}
 
 .clip_plots=function(x,dir_out,return=F){
 
   require(lidR)
   require(lasR)
+
+  browser()
+
   poly_coords=x@polygons[[1]]@Polygons[[1]]@coords
 
-  las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],","))[1])
-  dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],","))[1])
+  las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],",")[1]))
+  dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],",")[1]))
   dtm_poly=crop(dtm_in,x)
   las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
   las_hts=lasnormalize(las_poly, dtm = dtm_poly)

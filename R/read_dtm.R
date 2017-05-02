@@ -50,14 +50,16 @@ read_dtm=function(
   ,plot=F
   ,NA_val=-1
   ,return_polygon=F
+  ,mosaic=T
 ){
 
   if(!is.na(dir_dtm) | length(dtm_files) > 1){
 
 
     if(is.na(dtm_files[1])) dtm_files=list.files(dir_dtm,full.names=TRUE,ignore.case=TRUE,pattern=pattern,recursive=recursive)
-
-    return(lapply(dtm_files,read_dtm,plot=F,NA_val=NA_val,return_polygon=return_polygon)   )
+    dtms=lapply(dtm_files,read_dtm,plot=F,NA_val=NA_val,return_polygon=return_polygon)
+    if(mosaic) dtms=do.call(function(...)mosaic(...,fun=mean,na.rm=T), dtms)
+    return(dtms)
 
 
 
