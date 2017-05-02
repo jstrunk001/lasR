@@ -34,25 +34,28 @@
 #   )
 
 library(rgdal)
-proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot",layer="extent")
+library(lasR)
 
-tile_project(
-  dir_las="G:\\phodar\\NAIP_2015\\las_files\\"
-  ,dir_dtm="F:\\DNR\\FUSION_DTMS\\"
+proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_counties_wasp")
+
+lasR_project(
+  dir_las="I:\\phodar\\NAIP_2015\\las_files\\"
+  ,dir_dtm="H:\\DNR\\FUSION_DTMS\\"
   ,dir_project="C:\\projects\\2017_WA_DSM_Pilot\\"
-  ,project="DSM_Pilot_A"
+  ,project="DSM_Pilot_5cnty_lasR"
   ,project_dtm="naip"
   ,project_las="naip"
   ,dtm_year="2015"
   ,las_year="2015"
   ,mask=proj_area
-  ,scan_dtms=T
-  ,scan_las=T
+  ,scan_dtms=F
+  ,scan_las=F
   ,tile_size=1650
   ,pixel_size=66
   ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
   ,crs="+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs"
 )
+
 if(F){
 
   gmi=run_gridmetrics(

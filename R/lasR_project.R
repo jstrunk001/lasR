@@ -80,6 +80,7 @@ lasR_project=function(
   ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
   ,crs="+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs"
   ,mask=NA
+  ,return=F
 ){
   Sys.time()
   require("DBI")
@@ -113,50 +114,51 @@ lasR_project=function(
   #buffer polygons
   dtm_polys1=buffer(dtm_polys,pixel_size*2+1,dissolve=F);gc()
   las_polys1=buffer(las_polys,pixel_size*2+1,dissolve=F);gc()
-print("buffer");Sys.time()
+print("buffer");print(Sys.time())
   #create processing tiles
   proc_rast=raster(xmn=xmn,xmx=xmx,ymn=ymn,ymx=ymx,resolution=tile_size,crs=crs);gc()
   proc_rast[]=cellsFromExtent(proc_rast,extent(proc_rast));gc()
   xy=as.data.frame(proc_rast,xy=T)
-print("tile scheme");Sys.time()
+print("tile scheme");print(Sys.time())
   #create sub-processing tiles (100x density) for intersection with polygons
   proc_rast1=raster(xmn=xmn,xmx=xmx,ymn=xmn,ymx=ymx,resolution=tile_size/10,crs=crs);gc()
   xy1=as.data.frame(proc_rast1,xy=T);gc()
   xy1[,"layer"]=NULL;gc()
   xy1[,"tile_id"]=cellFromXY(proc_rast, xy1[,c(1:2)]);gc()
   proc_rast1[]=xy1[,"tile_id"];gc()
-print("sub-tiles to fix edge problem");Sys.time()
+print("sub-tiles to fix edge problem");print(Sys.time())
   #mask if desired
   if(!is.na(mask[1])){
     mask1=buffer(mask,tile_size)
     proc_rast=crop(proc_rast,mask1)
     proc_rast1=crop(proc_rast1,mask1)
   }
-print("mask");Sys.time()
+print("mask");print(Sys.time())
+
   #intersect tiles with polygons
   ex_dtm=extract(proc_rast1,dtm_polys1);gc()
   names(ex_dtm)=dtm_polys1$file_path
   ex_dtm1=lapply(ex_dtm[sapply(ex_dtm,length)>0],unique);gc()
 
-print("extract dtm polygons");Sys.time()
+print("extract dtm polygons");print(Sys.time())
   ex_las=extract(proc_rast1,las_polys1);gc()
   names(ex_las)=las_polys1$file_path
   ex_las1=lapply(ex_las[sapply(ex_las,length)>0],unique);gc()
 
-print("extract las polygons");Sys.time()
+print("extract las polygons");print(Sys.time())
 
   #create dataframe from dtm and las intersections on tiles
   tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
   #sum(duplicated(tiles_las_df[,"las_file"]))
-print("create dataframe from dtm and las intersections on tiles A");Sys.time()
+print("create dataframe from dtm and las intersections on tiles A");print(Sys.time())
   tiles_dtm_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,dtm_file=file,stringsAsFactors=F)},ex_dtm1,names(ex_dtm1),SIMPLIFY=F)))
   #sum(duplicated(tiles_dtm_df[,"dtm_file"]))
-print("create dataframe from dtm and las intersections on tiles B");Sys.time()
+print("create dataframe from dtm and las intersections on tiles B");print(Sys.time())
   tiles_dtm_agg=aggregate(dtm_file~tile_id,data=tiles_dtm_df,FUN=function(x)paste(unique(x),collapse=","))
   tiles_las_agg=aggregate(las_file~tile_id,data=tiles_las_df,FUN=function(x)paste(unique(x),collapse=","))
-print("create dataframe from dtm and las intersections on tiles C");Sys.time()
+print("create dataframe from dtm and las intersections on tiles C");print(Sys.time())
   tiles_las_dtm=merge(tiles_las_agg,tiles_dtm_agg,by="tile_id")
-print("Merge")
+print("Merge");print(Sys.time())
   #add tile bounds
   tiles_coords=merge(x=tiles_las_dtm,y=xy,by.x="tile_id",by.y="layer")
   crd=tiles_coords[,c("x","y")]
@@ -165,21 +167,30 @@ print("Merge")
   tiles_bbx=data.frame(tiles_coords,bbx)
 
   #save everything to sqlite database?
-
-  #create polys from bboxs
-  browser
-  if(F){
+browser()
+  #create polys from bboxs and write to file
   tile_polys0=bbox2polys(tiles_bbx[,c("tile_id","mnx","mxx","mny","mxy")])
+  row.names(tiles_bbx)=tiles_bbx[,c("tile_id")]
   tile_polys1=SpatialPolygonsDataFrame(tile_polys0,tiles_bbx)
-  writeOGR(tile_polys1, project_path, "intersections", driver="ESRI Shapefile")
+
+  #write project to file
+  #write polygons
+  n_err=0
+  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"))
+
+  if(class(write_test)=="try-error"){
+    n_err=list.files(project_path,"lasR_project.*shp")
+    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"))
   }
+  if(class(write_test)=="try-error") warning("Error trying to write lasR_project geometry",write_test)
 
-  #write data to csv file?
-  out_csv=file.path(project_path,"intersections.csv")
-  write.csv(tiles_bbx,out_csv)
+  #write project to file
+  #write csv
+  out_csv=file.path(project_path,sprintf("lasR_project%03d.csv", n_err+1))
+  write_test=try(write.csv(tiles_bbx,out_csv))
+  if(class(write_test)=="try-error") warning("Error trying to write lasR_project geometry",write_test)
 
-  #return something?
-
+  if(return) return(tile_polys1)
 
 }
 
