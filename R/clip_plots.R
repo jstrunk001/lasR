@@ -8,10 +8,8 @@ clip_plots=function(
   ,dir_out=NA
   ,height=F
   ,do_plot=T
-  ,do_lasmetrics=T
   ,return=F
   ,n_core=6
-  ,dir_fusion="c:\\fusion\\"
   ,dir_dtm=NA #in case drive paths are wrong (External drives...)
   ,dir_las=NA #in case drive paths are wrong (External drives...)
 
@@ -65,6 +63,7 @@ print("load lasR_project");print(Sys.time())
     plot_polys=SpatialPolygonsDataFrame(plot_polys_0,data=idxyd)
 
   }
+print("Create Plot Polys");print(Sys.time())
 
   #clean up self intersections
   proj_polys_b=gBuffer(proj_polys, byid=TRUE, width=0)
@@ -87,9 +86,13 @@ print("load lasR_project");print(Sys.time())
   plot_polys_spdf=SpatialPolygonsDataFrame(plot_polys_ext,plot_polys_b1@data)
   proj_polys_spdf=SpatialPolygonsDataFrame(proj_polys_ext,proj_polys_b1@data)
 
+print("clip, recombine plots with data");print(Sys.time())
+
   #intersect plots with tiles
   proj_plot_x=gIntersects(plot_polys_spdf,proj_polys_spdf, byid=T,returnDense=F)
   proj_plot_x1=proj_plot_x[sapply(proj_plot_x,function(x)length(x)>0)]
+
+print("intersect plots and tiles");print(Sys.time())
 
   #parse intersections and compile data
   plots_tiles=rbind.fill(mapply(function(x,y,plots,tiles){data.frame(plots[as.character(x),],tiles[y,],row.names=NULL)},names(proj_plot_x1),proj_plot_x1,SIMPLIFY = F, MoreArgs = list(plots=plot_polys_spdf@data,tiles=proj_polys_spdf@data)))
@@ -102,6 +105,8 @@ print("load lasR_project");print(Sys.time())
   dups_df=.fn_merge(spl_dups)
   plots_tiles_unq=rbind(no_dups_df,dups_df)
   row.names(plots_tiles_unq)=plots_tiles_unq[,1]
+
+print("merge duplicates");print(Sys.time())
 
   #add records to geometry
   plot_polys_merge=SpatialPolygonsDataFrame(plot_polys_ext[names(plot_polys_ext) %in% (plots_tiles_unq[,1])],plots_tiles_unq)
@@ -117,20 +122,21 @@ print("load lasR_project");print(Sys.time())
 
   if(n_core>1){
     clus=makeCluster(n_core)
-    browser()
     parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out)
   }
   if(n_core<2){
-    lapply(spl_plots,.clip_plots,dir_out = dir_out)
+    lapply(spl_plots,.try_clip_plots,dir_out = dir_out)
   }
 
-  .clip_plots(spl_plots[[2]],dir_out = dir_out)
-
+  #.try_clip_plots(spl_plots[[2]],dir_out = dir_out)
+print("clip plots");print(Sys.time())
 
   #write shapefile of intersections
   dir_overlap=file.path(dir_out,"plot_tile_overlap")
   if(!dir.exists(dir_overlap)) dir.create(dir_overlap)
   writeOGR(plot_polys_merge,dir_overlap,"plot_merge_tiles", driver="ESRI Shapefile")
+
+print("write outputs");print(Sys.time())
 
   if(return) return(plot_polys_merge)
 
@@ -177,16 +183,24 @@ print("load lasR_project");print(Sys.time())
 
     poly_coords=x@polygons[[1]]@Polygons[[1]]@coords
 
-    las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],","))[1])
-    dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],","))[1])
-    dtm_poly=crop(dtm_in,x)
+    las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],",")[1]))
+    dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],",")[1]))
+    dtm_poly=try(crop(dtm_in,x))
+    if(class(dtm_poly)=="try-error"){warning("plot and dem do not intersect, plot: ",x@data[,1]);return()}
     las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
     las_hts=lasnormalize(las_poly, dtm = dtm_poly)
+
+    las_hts@header@data['Z offset']=min(las_hts@data$Z)
+
 
     #write to file
     if(!dir.exists(dir_out))dir.create(dir_out)
     out_file_i=file.path(dir_out,paste(names(x)[1],"_",x@data[,1],".las",sep=""))
     writeLAS(las_hts,out_file_i)
+
+    # writeLAS(las_poly,"C:\\R\\analyses\\lidR_bug\\sample_elevation.las")
+    # writeLAS(las_poly,"C:\\R\\analyses\\lidR_bug\\sample_height.las")
+    # writeRaster(dtm_poly,"C:\\R\\analyses\\lidR_bug\\sample_dtm.tif")
 
   }
 
@@ -199,13 +213,12 @@ print("load lasR_project");print(Sys.time())
   require(lidR)
   require(lasR)
 
-  browser()
-
   poly_coords=x@polygons[[1]]@Polygons[[1]]@coords
 
   las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],",")[1]))
   dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],",")[1]))
-  dtm_poly=crop(dtm_in,x)
+  dtm_poly=try(crop(dtm_in,x))
+  if(class(dtm_poly)=="try-error"){warning("plot and dem do not intersect, plot: ",x@data[,1]);return()}
   las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
   las_hts=lasnormalize(las_poly, dtm = dtm_poly)
 
