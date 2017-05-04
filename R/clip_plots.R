@@ -122,10 +122,10 @@ print("merge duplicates");print(Sys.time())
 
   if(n_core>1){
     clus=makeCluster(n_core)
-    parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out)
+    parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
   }
   if(n_core<2){
-    lapply(spl_plots,.try_clip_plots,dir_out = dir_out)
+    lapply(spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
   }
 
   #.try_clip_plots(spl_plots[[2]],dir_out = dir_out)
@@ -176,7 +176,7 @@ print("write outputs");print(Sys.time())
 
   require(lasR)
 
-  .clip_plots=function(x,dir_out,return=F){
+  .clip_plots=function(x,dir_out,return=F,height=T){
 
     require(lidR)
     require(lasR)
@@ -188,10 +188,14 @@ print("write outputs");print(Sys.time())
     dtm_poly=try(crop(dtm_in,x))
     if(class(dtm_poly)=="try-error"){warning("plot and dem do not intersect, plot: ",x@data[,1]);return()}
     las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
-    las_hts=lasnormalize(las_poly, dtm = dtm_poly)
-
-    las_hts@header@data['Z offset']=min(las_hts@data$Z)
-
+    if(height) las_hts = lasnormalize(las_poly, dtm = dtm_poly)
+    if(!height) las_hts = las_poly
+    las_hts@header@data['X scale factor'] = 0.001
+    las_hts@header@data['Y scale factor'] = 0.001
+    las_hts@header@data['Z scale factor'] = 0.001
+    las_hts@header@data['X offset']=1
+    las_hts@header@data['Y offset']=1
+    las_hts@header@data['Z offset']=1
 
     #write to file
     if(!dir.exists(dir_out))dir.create(dir_out)
@@ -207,27 +211,30 @@ print("write outputs");print(Sys.time())
   try(.clip_plots(...))
 
 }
-
-.clip_plots=function(x,dir_out,return=F){
-
-  require(lidR)
-  require(lasR)
-
-  poly_coords=x@polygons[[1]]@Polygons[[1]]@coords
-
-  las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],",")[1]))
-  dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],",")[1]))
-  dtm_poly=try(crop(dtm_in,x))
-  if(class(dtm_poly)=="try-error"){warning("plot and dem do not intersect, plot: ",x@data[,1]);return()}
-  las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
-  las_hts=lasnormalize(las_poly, dtm = dtm_poly)
-
-  #write to file
-  if(!dir.exists(dir_out))dir.create(dir_out)
-  out_file_i=file.path(dir_out,paste(names(x)[1],"_",x@data[,1],".las",sep=""))
-  writeLAS(las_hts,out_file_i)
-
-}
+#
+# .clip_plots=function(x,dir_out,return=F){
+#
+#   require(lidR)
+#   require(lasR)
+#
+#   #browser()
+#
+#   poly_coords=x@polygons[[1]]@Polygons[[1]]@coords
+#
+#   las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],",")[1]))
+#   dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],",")[1]))
+#   dtm_poly=try(crop(dtm_in,x))
+#   if(class(dtm_poly)=="try-error"){warning("plot and dem do not intersect, plot: ",x@data[,1]);return()}
+#   las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
+#   las_hts=lasnormalize(las_poly, dtm = dtm_poly)
+#
+#
+#   #write to file
+#   if(!dir.exists(dir_out))dir.create(dir_out)
+#   out_file_i=file.path(dir_out,paste(names(x)[1],"_",x@data[,1],".las",sep=""))
+#   writeLAS(las_hts,out_file_i)
+#
+# }
 
 if(F){
 
@@ -245,8 +252,11 @@ if(F){
   clip_plots(lasR_project="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\lasR_project001.csv"
              ,idxyd=idxyd2
              ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips"
+             #fix bad directory:
              ,dir_las="I:\\phodar\\NAIP_2015\\las_files\\"
+             #fix bad directory:
              ,dir_dtm="H:\\DNR\\FUSION_DTMS\\"
+             ,n_core=8
   )
 
 }

@@ -36,7 +36,7 @@
 library(rgdal)
 library(lasR)
 
-proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_counties_wasp")
+proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_counties_WASP")
 
 lasR_project(
   dir_las="I:\\phodar\\NAIP_2015\\las_files\\"

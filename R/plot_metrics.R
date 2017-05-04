@@ -1,0 +1,103 @@
+
+  .compute_metrics = function(lidar,ht_brk=6,outliers=c(-6,400)){
+
+    #make data convenient
+    z=lidar@data$Z
+    x=lidar@data$X
+    y=lidar@data$Y
+
+    #filter
+    id_in=z>outliers[1] & z<outliers[2]
+    z_in=z[id_in]
+    x_in=x[id_in]
+    y_in=y[id_in]
+
+    id_brk=z>ht_brk
+    z_brk=z_in[id_brk]
+    x_brk=x_in[id_brk]
+    y_brk=y_in[id_brk]
+
+    metrics_in = data.frame(
+      n_all=length(z)
+      ,n_in=length(z_in)
+      ,n_lt_brk=length(z_in[!id_brk])
+      ,n_gt_brk=length(z_brk)
+
+      ,zmin   = min(z_brk,na.rm=T)
+      ,zmax   = max(z_brk,na.rm=T)
+      ,zmean   = mean(z_brk,na.rm=T)
+      ,zsqmean = sqrt(mean(z^2,na.rm=T))  # Quadratic mean
+      ,zsd   = sd(z_brk,na.rm=T)
+      ,zcover = length(z_brk) / length(z_in)
+
+      ,xsd = sd(x_brk,na.rm=T)
+      ,ysd = sd(y_brk,na.rm=T)
+      ,xysd= sd(sqrt(y_brk*x_brk),na.rm=T)
+      ,xyzsd= sd((y_brk*x_brk*z_brk)^(1/3),na.rm=T)
+
+    )
+
+    #add quantiles
+    step=.1
+    qts=c(step/2,seq(0+step,1-step,step),1-step/2)
+    nms=sprintf("zqt%02d",qts*100)
+    metrics_in[,nms]=quantile(z_brk,qts,na.rm=T)
+
+
+    return(metrics_in)
+
+  }
+
+
+  .proc_plot = function(LASFile,fun){
+    require(lidR)
+
+    # Load the data
+    lidar = readLAS(LASFile)
+
+    # compute metrics
+    metrics_i = fun(lidar)
+
+    return(data.frame(LASFile,metrics_i))
+
+  }
+
+  plot_metrics=function(
+                        dir_las=NA
+                        ,las_files=NA
+                        ,pattern="[.]las*z*$"
+                        ,dir_out=NA
+                        ,return=T
+                        ,do_fusion=F
+                        ,dir_fusion="c:\\fusion\\cloudmetrics.exe"
+                        ,fun=.compute_metrics
+                        ,n_core=7
+                        ){
+
+    require(lidR)
+    require(data.table)
+    if(!is.na(dir_las)) las_files=list.files(dir_las,pattern="[.]las*z*",full.names=T)
+    if(n_core<2){
+    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun)))
+    }
+    if(n_core>1){
+      require(parallel)
+      clus=makeCluster(n_core)
+      res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun)))
+      stopCluster(clus)
+    }
+    if(!is.na(dir_out)){
+      if(!dir.exists(dir_out)) dir.create(dir_out)
+      n_out=length(list.files(dir_out,"plot_metrics...[.]csv$"))
+      outf=file.path(dir_out,sprintf("plot_metrics%03d.csv",n_out+1))
+      write.csv(res,outf)
+    }
+   if(return) return(res)
+  }
+
+
+
+  dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips\\"
+  plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\")
+
+
