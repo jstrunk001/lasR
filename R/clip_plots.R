@@ -123,6 +123,7 @@ print("merge duplicates");print(Sys.time())
   if(n_core>1){
     clus=makeCluster(n_core)
     parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
+    stopCluster(clus)
   }
   if(n_core<2){
     lapply(spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
