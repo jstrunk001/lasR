@@ -7,7 +7,9 @@
     y=lidar@data$Y
 
     #filter
-    id_in=z>outliers[1] & z<outliers[2]
+    if(!is.na(outliers[1])) id_in=z>outliers[1] & z<outliers[2]
+    else id_in=T
+
     z_in=z[id_in]
     x_in=x[id_in]
     y_in=y[id_in]
@@ -49,14 +51,14 @@
   }
 
 
-  .proc_plot = function(LASFile,fun){
+  .proc_plot = function(LASFile,fun,...){
     require(lidR)
 
     # Load the data
     lidar = readLAS(LASFile)
 
     # compute metrics
-    metrics_i = fun(lidar)
+    metrics_i = fun(lidar,...)
 
     return(data.frame(LASFile,metrics_i))
 
@@ -72,18 +74,19 @@
                         ,dir_fusion="c:\\fusion\\cloudmetrics.exe"
                         ,fun=.compute_metrics
                         ,n_core=7
+                        ,...
                         ){
 
     require(lidR)
     require(data.table)
     if(!is.na(dir_las)) las_files=list.files(dir_las,pattern="[.]las*z*",full.names=T)
     if(n_core<2){
-    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun)))
+    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
     }
     if(n_core>1){
       require(parallel)
       clus=makeCluster(n_core)
-      res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun)))
+      res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
       stopCluster(clus)
     }
     if(!is.na(dir_out)){
@@ -96,8 +99,10 @@
   }
 
 
-#
-#   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips\\"
-#   plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\")
-#
+if(F){
+  dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips\\"
+  plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\")
+  dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips_elev\\"
+  plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",outliers=NA)
+}
 

@@ -167,7 +167,7 @@ print("Merge");print(Sys.time())
   tiles_bbx=data.frame(tiles_coords,bbx)
 
   #save everything to sqlite database?
-browser()
+
   #create polys from bboxs and write to file
   tile_polys0=bbox2polys(tiles_bbx[,c("tile_id","mnx","mxx","mny","mxy")])
   row.names(tiles_bbx)=tiles_bbx[,c("tile_id")]

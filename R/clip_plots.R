@@ -7,7 +7,7 @@ clip_plots=function(
   ,lasR_project_polys=NA
   ,dir_out=NA
   ,height=F
-  ,do_plot=T
+  ,do_plot=F
   ,return=F
   ,n_core=6
   ,dir_dtm=NA #in case drive paths are wrong (External drives...)
@@ -107,7 +107,7 @@ print("intersect plots and tiles");print(Sys.time())
   row.names(plots_tiles_unq)=plots_tiles_unq[,1]
 
 print("merge duplicates");print(Sys.time())
-
+browser()
   #add records to geometry
   plot_polys_merge=SpatialPolygonsDataFrame(plot_polys_ext[names(plot_polys_ext) %in% (plots_tiles_unq[,1])],plots_tiles_unq)
 
@@ -118,7 +118,6 @@ print("merge duplicates");print(Sys.time())
 
   #clip points
   spl_plots=split(plot_polys_merge,1:nrow(plot_polys_merge))
-  spl_plots
 
   if(n_core>1){
     clus=makeCluster(n_core)
@@ -258,6 +257,19 @@ if(F){
              #fix bad directory:
              ,dir_dtm="H:\\DNR\\FUSION_DTMS\\"
              ,n_core=8
+
+  )
+
+  clip_plots(lasR_project="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\lasR_project001.csv"
+             ,idxyd=idxyd2
+             ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips_elev"
+             #fix bad directory:
+             ,dir_las="I:\\phodar\\NAIP_2015\\las_files\\"
+             #fix bad directory:
+             ,dir_dtm="H:\\DNR\\FUSION_DTMS\\"
+             ,n_core=7
+             ,height=F
+
   )
 
 }
