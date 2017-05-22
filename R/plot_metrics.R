@@ -8,7 +8,6 @@ plot_metrics1=function(
   ,dir_fusion="c:\\fusion\\cloudmetrics.exe"
   ,fun=.compute_metrics
   ,n_core=7
-  ,elev_metrics=F    #adjust for the fact that heights aren't provided - offset by 5th percentile height
   ,...
 ){
 
@@ -16,12 +15,12 @@ plot_metrics1=function(
   require(data.table)
   if(!is.na(dir_las)) las_files=list.files(dir_las,pattern="[.]las*z*",full.names=T)
   if(n_core<2){
-    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun,elev_metrics=elev_metrics,...)))
+    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
   }
   if(n_core>1){
     require(parallel)
     clus=makeCluster(n_core)
-    res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,elev_metrics=elev_metrics,...)))
+    res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
     stopCluster(clus)
   }
   if(!is.na(dir_out)){
@@ -33,7 +32,12 @@ plot_metrics1=function(
   if(return) return(res)
 }
 
-  .compute_metrics = function(lidar,ht_brk=6,outliers=c(-6,400),elev_metrics){
+  .compute_metrics = function(
+    lidar
+    ,ht_brk=6
+    ,outliers=c(-6,400)
+    ,elev_metrics=F          #adjust for the fact that heights aren't provided - offset by 5th percentile height
+    ){
 
     #make data convenient
     z=lidar@data$Z
@@ -78,19 +82,23 @@ plot_metrics1=function(
 
     )
 
+    #add cover
+    nms_cov=sprintf("zcover_%03d",ht_brk)
+    cov_pcts=(ecdf(z))(ht_brk)
+    metrics_in[,nms_cov]=cov_pcts
+
     #add quantiles
     step=.1
     qts=c(step/2,seq(0+step,1-step,step),1-step/2)
-    nms=sprintf("zqt%02d",qts*100)
-    metrics_in[,nms]=quantile(z_brk,qts,na.rm=T)
-
+    nms_zqts=sprintf("zqt%02d",qts*100)
+    metrics_in[,nms_zqts]=quantile(z_brk,qts,na.rm=T)
 
     return(metrics_in)
 
   }
 
 
-  .proc_plot = function(LASFile,fun,...){
+  .proc_plot = function(LASFile,fun,elev_metrics,...){
     require(lidR)
 
     # Load the data
@@ -108,7 +116,7 @@ plot_metrics1=function(
 
 if(F){
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips\\"
-  metrics0=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\")
+  metrics0=plot_metrics(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\")
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips_elev\\"
   metrics1=plot_metrics1(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=T)
   #plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=F,outliers=NA)
