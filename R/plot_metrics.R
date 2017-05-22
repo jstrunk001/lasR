@@ -8,6 +8,7 @@ plot_metrics=function(
   ,dir_fusion="c:\\fusion\\cloudmetrics.exe"
   ,fun=.compute_metrics
   ,n_core=7
+  ,elev_metrics=F    #adjust for the fact that heights aren't provided
   ,...
 ){
 
@@ -32,12 +33,17 @@ plot_metrics=function(
   if(return) return(res)
 }
 
-  .compute_metrics = function(lidar,ht_brk=6,outliers=c(-6,400)){
+  .compute_metrics = function(lidar,ht_brk=6,outliers=c(-6,400),elev_metrics){
 
     #make data convenient
     z=lidar@data$Z
     x=lidar@data$X
     y=lidar@data$Y
+
+    #adjust for missing dtm
+    if(elev_metrics){
+      z=z-quantile(z,.05)
+    }
 
     #filter
     if(!is.na(outliers[1])) id_in=z>outliers[1] & z<outliers[2]
