@@ -24,6 +24,9 @@ plot_metrics=function(
     res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
     stopCluster(clus)
   }
+  if(n_core==1){
+    res=rbindlist(mapply(.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
+  }
   if(!is.na(dir_out)){
     if(!dir.exists(dir_out)) dir.create(dir_out)
     n_out=length(list.files(dir_out,"plot_metrics...[.]csv$"))
@@ -42,7 +45,7 @@ plot_metrics=function(
 
     #adjust for missing dtm
     if(elev_metrics){
-      z=z - quantile(z,.05)
+      z = z - quantile(z,.05)
     }
 
     #filter
@@ -108,8 +111,9 @@ plot_metrics=function(
 
 if(F){
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips\\"
-  plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\")
+  metrics0=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\")
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips_elev\\"
-  plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",outliers=NA)
+  metrics1=plot_metrics(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=T)
+  #plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=F,outliers=NA)
 }
 
