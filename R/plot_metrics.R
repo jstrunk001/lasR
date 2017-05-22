@@ -1,3 +1,36 @@
+plot_metrics=function(
+  dir_las=NA
+  ,las_files=NA
+  ,pattern="[.]las*z*$"
+  ,dir_out=NA
+  ,return=T
+  ,do_fusion=F
+  ,dir_fusion="c:\\fusion\\cloudmetrics.exe"
+  ,fun=.compute_metrics
+  ,n_core=7
+  ,...
+){
+
+  require(lidR)
+  require(data.table)
+  if(!is.na(dir_las)) las_files=list.files(dir_las,pattern="[.]las*z*",full.names=T)
+  if(n_core<2){
+    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
+  }
+  if(n_core>1){
+    require(parallel)
+    clus=makeCluster(n_core)
+    res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
+    stopCluster(clus)
+  }
+  if(!is.na(dir_out)){
+    if(!dir.exists(dir_out)) dir.create(dir_out)
+    n_out=length(list.files(dir_out,"plot_metrics...[.]csv$"))
+    outf=file.path(dir_out,sprintf("plot_metrics%03d.csv",n_out+1))
+    write.csv(res,outf)
+  }
+  if(return) return(res)
+}
 
   .compute_metrics = function(lidar,ht_brk=6,outliers=c(-6,400)){
 
@@ -64,39 +97,7 @@
 
   }
 
-  plot_metrics=function(
-                        dir_las=NA
-                        ,las_files=NA
-                        ,pattern="[.]las*z*$"
-                        ,dir_out=NA
-                        ,return=T
-                        ,do_fusion=F
-                        ,dir_fusion="c:\\fusion\\cloudmetrics.exe"
-                        ,fun=.compute_metrics
-                        ,n_core=7
-                        ,...
-                        ){
 
-    require(lidR)
-    require(data.table)
-    if(!is.na(dir_las)) las_files=list.files(dir_las,pattern="[.]las*z*",full.names=T)
-    if(n_core<2){
-    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
-    }
-    if(n_core>1){
-      require(parallel)
-      clus=makeCluster(n_core)
-      res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
-      stopCluster(clus)
-    }
-    if(!is.na(dir_out)){
-      if(!dir.exists(dir_out)) dir.create(dir_out)
-      n_out=length(list.files(dir_out,"plot_metrics...[.]csv$"))
-      outf=file.path(dir_out,sprintf("plot_metrics%03d.csv",n_out+1))
-      write.csv(res,outf)
-    }
-   if(return) return(res)
-  }
 
 
 if(F){
