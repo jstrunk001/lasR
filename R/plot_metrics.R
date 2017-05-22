@@ -21,11 +21,11 @@ plot_metrics=function(
   if(n_core>1){
     require(parallel)
     clus=makeCluster(n_core)
-    res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
+    res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,elev_metrics=elev_metrics,...)))
     stopCluster(clus)
   }
   if(n_core==1){
-    res=rbindlist(mapply(.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
+    res=rbindlist(mapply(.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,elev_metrics=elev_metrics,...)))
   }
   if(!is.na(dir_out)){
     if(!dir.exists(dir_out)) dir.create(dir_out)
