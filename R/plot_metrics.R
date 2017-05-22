@@ -1,4 +1,4 @@
-plot_metrics=function(
+plot_metrics1=function(
   dir_las=NA
   ,las_files=NA
   ,pattern="[.]las*z*$"
@@ -16,16 +16,13 @@ plot_metrics=function(
   require(data.table)
   if(!is.na(dir_las)) las_files=list.files(dir_las,pattern="[.]las*z*",full.names=T)
   if(n_core<2){
-    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
+    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun,elev_metrics=elev_metrics,...)))
   }
   if(n_core>1){
     require(parallel)
     clus=makeCluster(n_core)
     res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,elev_metrics=elev_metrics,...)))
     stopCluster(clus)
-  }
-  if(n_core==1){
-    res=rbindlist(mapply(.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,elev_metrics=elev_metrics,...)))
   }
   if(!is.na(dir_out)){
     if(!dir.exists(dir_out)) dir.create(dir_out)
@@ -113,7 +110,7 @@ if(F){
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips\\"
   metrics0=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\")
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips_elev\\"
-  metrics1=plot_metrics(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=T)
+  metrics1=plot_metrics1(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=T)
   #plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=F,outliers=NA)
 }
 
