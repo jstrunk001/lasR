@@ -8,7 +8,7 @@ plot_metrics=function(
   ,dir_fusion="c:\\fusion\\cloudmetrics.exe"
   ,fun=.compute_metrics
   ,n_core=7
-  ,elev_metrics=F    #adjust for the fact that heights aren't provided
+  ,elev_metrics=F    #adjust for the fact that heights aren't provided - offset by 5th percentile height
   ,...
 ){
 
@@ -42,7 +42,7 @@ plot_metrics=function(
 
     #adjust for missing dtm
     if(elev_metrics){
-      z=z-quantile(z,.05)
+      z=z - quantile(z,.05)
     }
 
     #filter
