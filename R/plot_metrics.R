@@ -100,6 +100,11 @@ plot_metrics=function(
     fn_vol=function(vol_res,x,y,z) length(unique(paste(round(x/vol_res,0),round(y/vol_res,0),round(z/vol_res,0),sep="_")))*(vol_res^3)
     metrics_in[,nms_vol]=sapply(vol_res,fn_vol,x_brk,y_brk,z_brk)
 
+    #add area - use same resolution as volume
+    nms_area=sprintf("area%03d",vol_res)
+    fn_area=function(area_res,x,y) length(unique(paste(round(x/area_res,0),round(y/area_res,0),sep="_")))*(area_res^2)
+    metrics_in[,nms_area]=sapply(vol_res,fn_area,x_brk,y_brk)
+
     return(metrics_in)
 
   }
