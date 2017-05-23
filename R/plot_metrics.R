@@ -1,4 +1,4 @@
-plot_metrics1=function(
+plot_metrics=function(
   dir_las=NA
   ,las_files=NA
   ,pattern="[.]las*z*$"
@@ -6,7 +6,7 @@ plot_metrics1=function(
   ,return=T
   ,do_fusion=F
   ,dir_fusion="c:\\fusion\\cloudmetrics.exe"
-  ,fun=.compute_metrics
+  ,fun=compute_metrics1
   ,n_core=7
   ,...
 ){
@@ -15,7 +15,7 @@ plot_metrics1=function(
   require(data.table)
   if(!is.na(dir_las)) las_files=list.files(dir_las,pattern="[.]las*z*",full.names=T)
   if(n_core<2){
-    res=rbindlist(mapply(.proc_plot,las_files[],SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
+    res=rbindlist(mapply(.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
   }
   if(n_core>1){
     require(parallel)
@@ -23,6 +23,7 @@ plot_metrics1=function(
     res=rbindlist(clusterMap(clus,.proc_plot,las_files,SIMPLIFY=F,MoreArgs=list(fun=fun,...)))
     stopCluster(clus)
   }
+
   if(!is.na(dir_out)){
     if(!dir.exists(dir_out)) dir.create(dir_out)
     n_out=length(list.files(dir_out,"plot_metrics...[.]csv$"))
@@ -32,11 +33,12 @@ plot_metrics1=function(
   if(return) return(res)
 }
 
-  .compute_metrics = function(
+  compute_metrics1 = function(
     lidar
-    ,ht_brk=6
+    ,ht_brk=c(3,6,seq(10,100,20))
     ,outliers=c(-6,400)
-    ,elev_metrics=F          #adjust for the fact that heights aren't provided - offset by 5th percentile height
+    ,elev_metrics         #adjust for the fact that heights aren't provided - offset by 5th percentile height
+    ,vol_res=seq(5,10,20)
     ){
 
     #make data convenient
@@ -57,7 +59,7 @@ plot_metrics1=function(
     x_in=x[id_in]
     y_in=y[id_in]
 
-    id_brk=z>ht_brk
+    id_brk=z_in>ht_brk
     z_brk=z_in[id_brk]
     x_brk=x_in[id_brk]
     y_brk=y_in[id_brk]
@@ -73,7 +75,7 @@ plot_metrics1=function(
       ,zmean   = mean(z_brk,na.rm=T)
       ,zsqmean = sqrt(mean(z^2,na.rm=T))  # Quadratic mean
       ,zsd   = sd(z_brk,na.rm=T)
-      ,zcover = length(z_brk) / length(z_in)
+      #,zcover = length(z_brk) / length(z_in)
 
       ,xsd = sd(x_brk,na.rm=T)
       ,ysd = sd(y_brk,na.rm=T)
@@ -84,7 +86,7 @@ plot_metrics1=function(
 
     #add cover
     nms_cov=sprintf("zcover_%03d",ht_brk)
-    cov_pcts=(ecdf(z))(ht_brk)
+    cov_pcts=1-(ecdf(z))(ht_brk)
     metrics_in[,nms_cov]=cov_pcts
 
     #add quantiles
@@ -93,12 +95,17 @@ plot_metrics1=function(
     nms_zqts=sprintf("zqt%02d",qts*100)
     metrics_in[,nms_zqts]=quantile(z_brk,qts,na.rm=T)
 
+    #add volume
+    nms_vol=sprintf("vol%03d",vol_res)
+    fn_vol=function(vol_res,x,y,z) length(unique(paste(round(x/vol_res,0),round(y/vol_res,0),round(z/vol_res,0),sep="_")))*vol_res
+    metrics_in[,nms_vol]=sapply(vol_res,fn_vol,x_brk,y_brk,z_brk)
+
     return(metrics_in)
 
   }
 
 
-  .proc_plot = function(LASFile,fun,elev_metrics,...){
+  .proc_plot = function(LASFile,fun,...){
     require(lidR)
 
     # Load the data
@@ -116,9 +123,10 @@ plot_metrics1=function(
 
 if(F){
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips\\"
-  metrics0=plot_metrics(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\")
+  metrics0=plot_metrics(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\",fun=compute_metrics1,elev_metrics=F)
+
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips_elev\\"
-  metrics1=plot_metrics1(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=T)
+  metrics1=plot_metrics(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=T)
   #plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=F,outliers=NA)
 }
 
