@@ -38,7 +38,7 @@ plot_metrics=function(
     ,ht_brk=c(3,6,seq(10,100,20))
     ,outliers=c(-6,400)
     ,elev_metrics         #adjust for the fact that heights aren't provided - offset by 5th percentile height
-    ,vol_res=seq(5,10,20)
+    ,vol_res=seq(5,100,20)
     ){
 
     #make data convenient
@@ -122,9 +122,9 @@ plot_metrics=function(
 
 
 if(F){
+  library(lasR)
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips\\"
   metrics0=plot_metrics(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics\\",fun=compute_metrics1,elev_metrics=F)
-
   dir1="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_clips_elev\\"
   metrics1=plot_metrics(dir1,n_core=1,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=T)
   #plot_metrics=plot_metrics(dir1,n_core=7,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\plot_metrics_elev\\",elev_metrics=F,outliers=NA)
