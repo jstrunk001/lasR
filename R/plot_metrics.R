@@ -97,7 +97,7 @@ plot_metrics=function(
 
     #add volume
     nms_vol=sprintf("vol%03d",vol_res)
-    fn_vol=function(vol_res,x,y,z) length(unique(paste(round(x/vol_res,0),round(y/vol_res,0),round(z/vol_res,0),sep="_")))*vol_res
+    fn_vol=function(vol_res,x,y,z) length(unique(paste(round(x/vol_res,0),round(y/vol_res,0),round(z/vol_res,0),sep="_")))*(vol_res^3)
     metrics_in[,nms_vol]=sapply(vol_res,fn_vol,x_brk,y_brk,z_brk)
 
     return(metrics_in)
