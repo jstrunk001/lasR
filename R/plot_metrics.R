@@ -105,6 +105,11 @@ plot_metrics=function(
     fn_area=function(area_res,x,y) length(unique(paste(round(x/area_res,0),round(y/area_res,0),sep="_")))*(area_res^2)
     metrics_in[,nms_area]=sapply(vol_res,fn_area,x_brk,y_brk)
 
+    #add density metrics
+    nms_area=sprintf("area%03d",vol_res)
+    fn_area=function(area_res,x,y) length(unique(paste(round(x/area_res,0),round(y/area_res,0),sep="_")))*(area_res^2)
+    metrics_in[,nms_area]=sapply(vol_res,fn_area,x_brk,y_brk)
+
     return(metrics_in)
 
   }
