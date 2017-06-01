@@ -17,14 +17,17 @@ run_gridmetrics=function(
   ,fusion_switches="/nointensity /first"
   ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
   #,fns=list(min=min,max=max,mean=mean,sd=sd,p20=function(x,...)quantile(x,.2,...),p75=function(x,...)quantile(x,.2,...),p95=function(x,...)quantile(x,.2,...))
-  ,fns=list(min=min,max=max,mean=mean,sd=sd)#,p20=function(x,...)quantile(x,.2,...),p75=function(x,...)quantile(x,.2,...),p95=function(x,...)quantile(x,.2,...))
+  ,fun=compute_metrics1#list(min=min,max=max,mean=mean,sd=sd)#,p20=function(x,...)quantile(x,.2,...),p75=function(x,...)quantile(x,.2,...),p95=function(x,...)quantile(x,.2,...))
+  ,temp="c:\\temp\\run_gridmetrics\\"
 
   ,dir_dtm=NA #in case drive paths are wrong (External drives...)
   ,dir_las=NA #in case drive paths are wrong (External drives...)
+  ,... #additonal arguments to fns
 
   ){
   require("parallel")
   require("raster")
+  require("rgdal")
 
   gridmetrics_type=gridmetrics_type[1]
   do_fusion = F
@@ -37,38 +40,29 @@ run_gridmetrics=function(
   gm_out=backslash(paste(dir_out,"/gridmetrics_csv/",proc_time,"/",sep=""))
   if(!dir.exists(gm_out)) try(dir.create(gm_out,recursive=T))
 
-  #create csv folder dum
-  temp=backslash(paste(dirname(lasR_project),"/run_gridmetrics_temp/",proc_time,"/",sep=""))
+  #create csv folder dump
   if(!dir.exists(temp)) try(dir.create(temp,recursive=T))
 
-  #create sp objects for plots
-  polys_in=NULL
-  if(!is.na(plot_polys[1])){
-    if(inherits(plot_polys,"sp")) polys_in=plot_polys
-    if(inherits(plot_polys,"char")) polys_in=readOGR(plot_polys)
+ #load lasR_project
+  if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
+    if(!inherits(lasR_project,"sp")){
+      proj=read.csv(lasR_project)
+      proj_polys0=bbox2polys(proj[,c("tile_id","mnx","mxx","mny","mxy")])
+      row.names(proj)=proj[,"tile_id"]
+      proj_polys=SpatialPolygonsDataFrame(proj_polys0,proj)
+    }
+    if(inherits(lasR_project,"sp")) proj_polys=lasR_project
   }
-  if(!is.na(unlist(idxy)[1]) & !inherits(polys_in,"sp")){
-    polys_in=points2polys(idxy)
+  if(!is.na(lasR_project_polys[1])){
+    if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(dirname(lasR_project_polys),gsub("[.]shp$","",basename(lasR_project_polys)))
+    if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
   }
-  if(!is.na(unlist(idxyd)[1]) & !inherits(polys_in,"sp")){
+  print("load lasR_project");print(Sys.time())
+  #fix drive paths in lasR_project
+  if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(proj_polys@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
+  if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
 
-    seq1=c(seq(-pi,pi,.1),pi+.1)
-    circle1=data.frame(sin(seq1),cos(seq1))
-    spl_idxyd=split(idxyd,1:nrow(idxyd))
-    idxy=rbind.fill(lapply(spl_idxyd,function(x,circle1)data.frame(id=x[,1],x=circle1[,1]*x[,4]+x[,2],y=circle1[,2]*x[,4]+x[,3]),circle1))
-    row.names(idxyd)=idxyd[,1]
-
-    plot_polys_0=points2polys(idxy)
-    plot_polys=SpatialPolygonsDataFrame(plot_polys_0,data=idxyd)
-
-  }
-  print("Create Plot Polys");print(Sys.time())
-
-  #clean up self intersections
-  proj_polys_b=gBuffer(proj_polys, byid=TRUE, width=0)
-  plot_polys_b=gBuffer(plot_polys, byid=TRUE, width=0)
-
-  #create output folder
+  #prepare output directory
   proj_polys@data[,"outf"]=paste(gm_out,proj_polys@data[,"tile_id"],".csv",sep="")
 
   #prepare batch commands
@@ -103,18 +97,19 @@ run_gridmetrics=function(
       clus=makeCluster(n_core)
       clusterEvalQ(clus,{library(lasR);gc()})
 
-      browser()
-
       res_i=clusterMap(
-                    clus
-                   ,gridmetrics
-                   ,las_files=lapply(proj_polys@data[,"las_file"],function(...)unlist(strsplit(...)),",")
-                   ,dtm_files=lapply(proj_polys@data[,"dtm_file"],function(...)unlist(strsplit(...)),",")
-                   ,xmin=proj_polys@data[,c("mnx")],ymin=proj_polys@data[,c("mny")],xmax=proj_polys@data[,c("mxx")],ymax=proj_polys@data[,c("mxy")]
-                   ,MoreArgs=list(fns=fns,res=cellsize,return=F)
-                   ,out_name=proj_polys@data[,"outf"]
-                   ,SIMPLIFY=F
-                  );gc();stopCluster(clus);gc()
+                      clus
+                      ,gridmetrics
+                      ,las_files=lapply(proj_polys@data[,"las_file"],function(...)unlist(strsplit(...)),",")
+                      ,dtm_files=lapply(proj_polys@data[,"dtm_file"],function(...)unlist(strsplit(...)),",")
+                      ,xmin=proj_polys@data[,c("mnx")]
+                      ,ymin=proj_polys@data[,c("mny")]
+                      ,xmax=proj_polys@data[,c("mxx")]
+                      ,ymax=proj_polys@data[,c("mxy")]
+                      ,MoreArgs=list(fun=fun,res=cellsize,return=F)
+                      ,out_name=proj_polys@data[,"outf"]
+                      ,SIMPLIFY=F
+                      );gc();stopCluster(clus);gc()
 
     }
 
@@ -125,7 +120,7 @@ run_gridmetrics=function(
                ,las_files=lapply(proj_polys@data[,"las_file"],function(...)unlist(strsplit(...)),",")
                ,dtm_files=lapply(proj_polys@data[,"dtm_file"],function(...)unlist(strsplit(...)),",")
                ,xmin=proj_polys@data[,c("mnx")],ymin=proj_polys@data[,c("mny")],xmax=proj_polys@data[,c("mxx")],ymax=proj_polys@data[,c("mxy")]
-               ,MoreArgs=list(fns=fns,res=cellsize,return=T)
+               ,MoreArgs=list(fun=fun,res=cellsize,return=T)
                ,out_name=proj_polys@data[,"outf"]
                ,SIMPLIFY=F
              );gc()
@@ -141,11 +136,16 @@ run_gridmetrics=function(
 
 if(F){
 
+  library(lasR)
+
   gmi=run_gridmetrics(
-    lasR_project="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A\\intersections.csv"
-    ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A\\"
+    lasR_project_polys="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\lasR_project001.shp"
+    ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\"
     ,gridmetrics=c("lasR")
-    ,n_core=7
+    ,n_core=1
+    ,dir_dtm="C:\\data\\FUSION_DTMS\\" #in case drive paths are wrong (External drives...)
+    ,dir_las="G:\\data\\2015_naip_phodar\\" #in case drive paths are wrong (External drives...)
+    ,elev_metrics=F
   )
 
 }

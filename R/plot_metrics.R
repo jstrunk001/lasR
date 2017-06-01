@@ -37,7 +37,7 @@ plot_metrics=function(
     lidar
     ,ht_brk=c(6,3,seq(10,100,20))
     ,outliers=c(-6,400)
-    ,elev_metrics         #adjust for the fact that heights aren't provided - offset by 5th percentile height
+    ,elev_metrics=F         #adjust for the fact that heights aren't provided - offset by 5th percentile height
     ,vol_res=seq(5,100,20)
     ){
 
