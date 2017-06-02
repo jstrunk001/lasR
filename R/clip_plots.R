@@ -124,7 +124,7 @@ clip_plots=function(
 
   #clip points
   spl_plots=split(plot_polys_merge,1:nrow(plot_polys_merge),drop=T)
-browser()
+
   if(n_core>1){
     clus=makeCluster(n_core)
     parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
