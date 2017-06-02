@@ -59,8 +59,8 @@ lasR_project(
 if(F){
 
   gmi=run_gridmetrics(
-    tile_project="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A_lasR\\intersections.csv"
-    ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A_lasR\\"
+    tile_project="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A\\intersections.csv"
+    ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A\\"
     ,gridmetrics=c("lasR")
     ,n_core=7
   )

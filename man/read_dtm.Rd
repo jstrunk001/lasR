@@ -6,7 +6,7 @@
 \title{read USDA FUSION format (Bob McGaughey) raster files and headers}
 \usage{
 read_dtm(dtm_files = NA, dir_dtm = NA, pattern = "[.]dtm$", plot = F,
-  NA_val = -1, return_polygon = F)
+  NA_val = -1, return_polygon = F, mosaic = T)
 
 read_dtm_header(dtm_file, dir_dtm = NA, pattern = "[.]dtm$",
   recursive = TRUE, out_file = NA)

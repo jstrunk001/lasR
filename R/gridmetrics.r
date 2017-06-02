@@ -41,7 +41,7 @@
 #' metrics=gridmetrics(las_files=las_files,dtm_files=dtm_files)
 #' head(metrics)
 #'
-#'@import raster, plyr
+#'@import raster, plyr, data.table, rgeos, lidR
 #'
 #'@export
 #'@seealso \code{\link{read_las}}\cr \code{\link{read_dtm}}\cr
@@ -54,7 +54,7 @@ gridmetrics=function(
   ,dtm_folder=NA
   ,dtm_ext=".dtm"
   ,no_dtm=F
-  ,fun=compute_metrics1 #list(min=min,max=max,mean=mean,sd=sd,p20=function(x,...)quantile(x,.2,...))
+  ,fun=compute_metrics2 #list(min=min,max=max,mean=mean,sd=sd,p20=function(x,...)quantile(x,.2,...))
   ,xmin=NA
   ,xmax=NA
   ,ymin=NA
@@ -75,12 +75,11 @@ gridmetrics=function(
   require(raster)
   require(plyr)
   require(rgeos)
+  require(lidR)
+  require(data.table)
 
   #get / merge las data
-  las_in=sapply(las_files,read_las,n_read=n_read,simplify=T)
-  las_pts=rbind.fill(las_in["pts",])
-  las_heads=rbind.fill(las_in["header",])
-  coordinates(las_pts)=~X+Y
+  las_in=readLAS(las_files)@data
 
   #get / merge dtms
   if(!no_dtm){
@@ -88,40 +87,24 @@ gridmetrics=function(
     if(is.na(dtm_files[1]) & is.na(dtm_folder)) stop ("dtm paths or folders not provided")
 
     if(tolower(dtm_ext)==".dtm"){
-
       dtms=read_dtm(dtm_files,dtm_folder)
-
     }
-    if(tolower(dtm_ext)!=".dtm"){
 
+    if(tolower(dtm_ext)!=".dtm"){
       if(is.na(dtm_files[1])) dtm_files=list.files(dtm_folder,pattern=dtm_ext,full.names=T)
       dtms=lapply(dtms,raster)
-
     }
 
-
-print("mosaic dtms")
+    print("mosaic dtms")
     #mosaic dtms
     if(class(dtms)=="list"){
-
-      #fix projection
-      for(i in 1:length(dtms)) proj4string(dtms[[i]])=proj4string(las_pts)=""
-
-      #intersect dtms with point data
-      las_bbx=bbox2polys(data.frame(t(c(1,extent(las_pts)[]))))
-      good_dtms=NULL
-      for(i in 1:length(dtms)) good_dtms[i]=gIntersects(as(extent(dtms[[i]]), "SpatialPolygons"),las_bbx)
-      dtms=dtms[good_dtms];gc()
-
-      if(length(dtms)==0){ warning("DTMs don't intersect lidar"); return()}
-
-      #do intersection
-      if(length(dtms)>1){ mos_dtm=do.call(function(x,y,...,fun=max)mosaic(x,y,...,fun=max),dtms)
-      }else{ mos_dtm=dtms[[1]]}
+      if(length(dtms)>1){
+        mos_dtm=do.call(function(x,y,...,fun=max)mosaic(x,y,...,fun=max),dtms)
+      }else{
+      mos_dtm=dtms[[1]]}
     }
     if(!class(dtms)=="list") mos_dtm=dtms
   }
-  proj4string(mos_dtm)=proj4string(las_pts)=""
 
   #clean up
   rm(list=c("dtms"));gc()
@@ -130,32 +113,24 @@ print("mosaic dtms")
   mos_dtm_ext=extent(mos_dtm)
 
   #difference points and rasters
-  las_pts@data[,"be"]=extract(mos_dtm,coordinates(las_pts))
-  #rm(list=c("mos_dtm"));gc()
-  las_pts@data[,"ht"]=las_pts@data$Z-las_pts@data$be
-
-  #clean up
+  las_in[,"be"]=raster::extract(mos_dtm,data.frame(las_in[,c("X","Y")]))
   rm(list=c("mos_dtm"));gc()
-
-  #rasterize point data
-print("intersect overlaps")
+  las_in[,"ht"]=las_in$Z-las_in$be
 
   #create processing grid
   if(inherits(grid,"raster")) r0=grid
-  if(!inherits(grid,"raster")) r0=raster(extent(las_pts),resolution=res)
+  if(!inherits(grid,"raster")){
+    extlas=extent(apply(las_in[,c("X","Y")],2,function(x)c(min(x),max(x))))
+    r0=raster(extlas,resolution=res)
+  }
 
-print("rasterize")
+  #rasterize
+  print("rasterize")
+  browser()
+  las_in[,"cell"] <- cellFromXY(r0, data.frame(las_in[,c("X","Y")]))
+  xyz=las_in[,compute_metrics2(z=.SD$Z,x=.SD$X,y=.SD$Y,as_list=F),by=cell,.SDcols=c("X","Y","Z")]
 
-  #br1=brick(lapply(fns,function(x,dat,rast,field)rasterize(x=dat,y=rast,fun=x,field=field),las_pts,r0,field="ht"))
-
-  test=rasterizeLAS(las_pts,r=r0,fun=fun,...)
-
-  rm(list=c("las_pts"));gc()
-
-print("push to long format")
-  #push to long format, write to csv
-  xyz=data.frame( rasterToPoints( br1 ) )
-
+  #write / return data
   if(!is.na(out_table)) if(!(out_table =="")) try(dbWriteTable(con,out_table,xyz))
   if(!is.na(out_name)) try(write.csv(xyz,out_name,row.names=F))
   if(return) return(xyz)
@@ -163,20 +138,20 @@ print("push to long format")
 
 }
 
- compute_metrics1 = function(
-   lidar
+ compute_metrics2 = function(
+    x,y,z
     ,ht_brk=c(6,3,seq(10,100,20))
     ,outliers=c(-6,400)
     ,elev_metrics=F         #adjust for the fact that heights aren't provided - offset by 5th percentile height
     ,vol_res=seq(5,100,20)
-    ,as_list=F
+    ,as_list=T
     ){
 
     #make data convenient
-    z=lidar$Z
-    x=lidar$X
-    y=lidar$Y
-browser()
+    # z=lidar@data$Z
+    # x=lidar@data$X
+    # y=lidar@data$Y
+
     #adjust for missing dtm
     if(elev_metrics){
       z = z - quantile(z,.05)

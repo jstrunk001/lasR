@@ -11,7 +11,7 @@ lasR_project(dir_las = NA, dir_dtm = NA,
   tile_size = 1650, pixel_size = 66, xmn = 561066, xmx = 2805066,
   ymn = 33066, ymx = 1551066,
   crs = "+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs",
-  mask = NA)
+  mask = NA, return = F)
 }
 \arguments{
 \item{dir_las}{where are las files}

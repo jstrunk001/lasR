@@ -17,7 +17,7 @@ run_gridmetrics=function(
   ,fusion_switches="/nointensity /first"
   ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
   #,fns=list(min=min,max=max,mean=mean,sd=sd,p20=function(x,...)quantile(x,.2,...),p75=function(x,...)quantile(x,.2,...),p95=function(x,...)quantile(x,.2,...))
-  ,fun=compute_metrics1#list(min=min,max=max,mean=mean,sd=sd)#,p20=function(x,...)quantile(x,.2,...),p75=function(x,...)quantile(x,.2,...),p95=function(x,...)quantile(x,.2,...))
+  ,fun=compute_metrics2#list(min=min,max=max,mean=mean,sd=sd)#,p20=function(x,...)quantile(x,.2,...),p75=function(x,...)quantile(x,.2,...),p95=function(x,...)quantile(x,.2,...))
   ,temp="c:\\temp\\run_gridmetrics\\"
 
   ,dir_dtm=NA #in case drive paths are wrong (External drives...)
