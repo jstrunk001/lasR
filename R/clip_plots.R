@@ -3,6 +3,7 @@ clip_plots=function(
   idxyd=NA #id,x,y,diameter
   ,idxy=NA #id,xy coordinates of vertices for each polygon
   ,plot_polys=NA #shapefile path, or sp object for plots
+  ,id_field_plots="plot"
   ,lasR_project=NA
   ,lasR_project_polys=NA
   ,dir_out=NA
@@ -43,15 +44,15 @@ clip_plots=function(
   if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
 
   #create sp objects for plots
-  polys_in=NULL
+  plot_polys_in=NULL
   if(!is.na(plot_polys[1])){
-    if(inherits(plot_polys,"sp")) polys_in=plot_polys
-    if(inherits(plot_polys,"character")) polys_in=readOGR(dirname(polys_in),gsub("[.]shp","",basename(polys_in)))
+    if(inherits(plot_polys,"sp")) plot_polys_in=plot_polys
+    if(inherits(plot_polys,"character")) plot_polys_in=readOGR(dirname(plot_polys),gsub("[.]shp","",basename(plot_polys)))
   }
-  if(!is.na(unlist(idxy)[1]) & !inherits(polys_in,"sp")){
-    polys_in=points2polys(idxy)
+  if(!is.na(unlist(idxy)[1]) & !inherits(plot_polys_in,"sp")){
+    plot_polys_in=points2polys(idxy)
   }
-  if(!is.na(unlist(idxyd)[1]) & !inherits(polys_in,"sp")){
+  if(!is.na(unlist(idxyd)[1]) & !inherits(plot_polys_in,"sp")){
 
     seq1=c(seq(-pi,pi,.1),pi+.1)
     circle1=data.frame(sin(seq1),cos(seq1))
@@ -59,15 +60,19 @@ clip_plots=function(
     idxy=rbind.fill(lapply(spl_idxyd,function(x,circle1)data.frame(id=x[,1],x=circle1[,1]*x[,4]+x[,2],y=circle1[,2]*x[,4]+x[,3]),circle1))
     row.names(idxyd)=idxyd[,1]
 
-    plot_polys_0=points2polys(idxy)
-    plot_polys=SpatialPolygonsDataFrame(plot_polys_0,data=idxyd)
+    plot_polys_in0=points2polys(idxy)
+    plot_polys_in=SpatialPolygonsDataFrame(polys_in_0,data=idxyd)
 
   }
-  print("Create Plot Polys");print(Sys.time())
+
+  #fix row names
+  row.names(plot_polys_in)=plot_polys_in@data[,id_field_plots]
+
+  print("Get / create Plot Polys");print(Sys.time())
 
   #clean up self intersections
   proj_polys_b=gBuffer(proj_polys, byid=TRUE, width=0)
-  plot_polys_b=gBuffer(plot_polys, byid=TRUE, width=0)
+  plot_polys_b=gBuffer(plot_polys_in, byid=TRUE, width=0)
 
   #clip data to match extents
   ext_tile=as(extent(as.vector(t(bbox(proj_polys_b)))), "SpatialPolygons")
@@ -104,12 +109,12 @@ clip_plots=function(
   spl_dups=split(dups,dups$plot)
   dups_df=.fn_merge(spl_dups)
   plots_tiles_unq=rbind(no_dups_df,dups_df)
-  row.names(plots_tiles_unq)=plots_tiles_unq[,1]
+  row.names(plots_tiles_unq)=plots_tiles_unq[,id_field_plots]
 
   print("merge duplicates");print(Sys.time())
 
   #add records to geometry
-  good_polys=names(plot_polys_ext) %in% (plots_tiles_unq[,1])
+  good_polys=names(plot_polys_ext) %in% (plots_tiles_unq[,id_field_plots])
   plot_polys_merge=SpatialPolygonsDataFrame(plot_polys_ext[good_polys,],plots_tiles_unq)
 
   if(do_plot){
@@ -119,7 +124,7 @@ clip_plots=function(
 
   #clip points
   spl_plots=split(plot_polys_merge,1:nrow(plot_polys_merge),drop=T)
-
+browser()
   if(n_core>1){
     clus=makeCluster(n_core)
     parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
@@ -135,7 +140,7 @@ clip_plots=function(
   #write shapefile of intersections
   dir_overlap=file.path(dir_out,"plot_tile_overlap")
   if(!dir.exists(dir_overlap)) dir.create(dir_overlap)
-  writeOGR(plot_polys_merge,dir_overlap,"plot_merge_tiles", driver="ESRI Shapefile")
+  if(!file.exists(paste(dir_overlap,"plot_merge_tiles.shp",sep="\\"))) writeOGR(plot_polys_merge,dir_overlap,"plot_merge_tiles", driver="ESRI Shapefile")
 
   print("write outputs");print(Sys.time())
 

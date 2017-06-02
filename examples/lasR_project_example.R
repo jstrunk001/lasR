@@ -40,7 +40,7 @@ proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_count
 
 lasR_project(
   dir_las="I:\\phodar\\NAIP_2015\\las_files\\"
-  ,dir_dtm="H:\\DNR\\FUSION_DTMS\\"
+  ,dir_dtm="C:\\data\\FUSION_DTMS\\"
   ,dir_project="C:\\projects\\2017_WA_DSM_Pilot\\"
   ,project="DSM_Pilot_5cnty_lasR"
   ,project_dtm="naip"
