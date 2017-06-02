@@ -46,7 +46,7 @@ clip_plots=function(
   polys_in=NULL
   if(!is.na(plot_polys[1])){
     if(inherits(plot_polys,"sp")) polys_in=plot_polys
-    if(inherits(plot_polys,"char")) polys_in=readOGR(plot_polys)
+    if(inherits(plot_polys,"character")) polys_in=readOGR(dirname(polys_in),gsub("[.]shp","",basename(polys_in)))
   }
   if(!is.na(unlist(idxy)[1]) & !inherits(polys_in,"sp")){
     polys_in=points2polys(idxy)

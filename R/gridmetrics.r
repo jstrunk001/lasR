@@ -66,7 +66,7 @@ gridmetrics=function(
   ,n_read=NA
 
   ,out_name=NA
-  ,return=T
+  ,return=F
   ,con=NA
   ,out_table=NA
   ,...
@@ -126,7 +126,6 @@ gridmetrics=function(
 
   #rasterize
   print("rasterize")
-  browser()
   las_in[,"cell"] <- cellFromXY(r0, data.frame(las_in[,c("X","Y")]))
   xyz=las_in[,compute_metrics2(z=.SD$Z,x=.SD$X,y=.SD$Y,as_list=F),by=cell,.SDcols=c("X","Y","Z")]
 
