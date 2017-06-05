@@ -24,6 +24,8 @@ clip_plots=function(
   require(data.table)
   require(parallel)
 
+  if(!file.exists(dir_out)) dir.create(dir_out, recursive=T)
+
   #load lasR_project
   if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
     if(!inherits(lasR_project,"sp")){
@@ -123,7 +125,7 @@ clip_plots=function(
   }
 
   #clip points
-  spl_plots=split(plot_polys_merge,1:nrow(plot_polys_merge),drop=T)
+  spl_plots=sp::split(plot_polys_merge,1:nrow(plot_polys_merge))
 
   if(n_core>1){
     clus=makeCluster(n_core)
@@ -186,14 +188,34 @@ clip_plots=function(
 
     require(lidR)
     require(lasR)
-
-    poly_coords=x@polygons[[1]]@Polygons[[1]]@coords
+    require(plyr)
 
     las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],",")[1]))
     dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],",")[1]))
     dtm_poly=try(crop(dtm_in,x))
     if(class(dtm_poly)=="try-error"){warning("plot and dem do not intersect, plot: ",x@data[,1]);return()}
-    las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
+
+    if(length(x@polygons[[1]]@Polygons)>1){
+
+      #clip to plot bbox
+      x_ext=matrix(extent(x)[],ncol=2)
+      las_clip_in=lasclip(las_in, "rectangle", x_ext , inside = TRUE)
+
+      #clip individual sub polygons
+      las_poly_list=lapply(x@polygons[[1]]@Polygons,function(x,las){lasclip(las, "polygon", x@coords, inside = TRUE)}, las_clip_in)
+
+      #merge las from subplots back together
+      points_merge=do.call(rbind,lapply(las_poly_list,function(x)x@data))
+      las_poly=LAS(points_merge,las_poly_list[[1]]@header)
+
+    }else{
+
+      #simple clip for contiguous polygon
+      poly_coords=x@polygons[[1]]@Polygons[[1]]@coords
+      las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
+    }
+
+
     if(height) las_hts = lasnormalize(las_poly, dtm = dtm_poly)
     if(!height) las_hts = las_poly
     las_hts@header@data['X scale factor'] = 0.001
