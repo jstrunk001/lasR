@@ -25,6 +25,7 @@ run_gridmetrics=function(
   ,... #additonal arguments to fns
 
   ){
+
   require("parallel")
   require("raster")
   require("rgdal")
@@ -41,6 +42,7 @@ run_gridmetrics=function(
   if(!dir.exists(gm_out)) try(dir.create(gm_out,recursive=T))
 
   #create csv folder dump
+  temp=backslash(paste(temp,"/",proc_time,"/",sep=""))
   if(!dir.exists(temp)) try(dir.create(temp,recursive=T))
 
  #load lasR_project
@@ -54,13 +56,14 @@ run_gridmetrics=function(
     if(inherits(lasR_project,"sp")) proj_polys=lasR_project
   }
   if(!is.na(lasR_project_polys[1])){
-    if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(dirname(lasR_project_polys),gsub("[.]shp$","",basename(lasR_project_polys)))
+    if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(dirname(lasR_project_polys),gsub("[.]shp$","",basename(lasR_project_polys)),stringsAsFactors=F)
     if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
   }
   print("load lasR_project");print(Sys.time())
   #fix drive paths in lasR_project
-  if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(proj_polys@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
-  if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
+
+  if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(as.character(proj_polys@data[,"dtm_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
+  if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(as.character(proj_polys@data[,"las_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
 
   #prepare output directory
   proj_polys@data[,"outf"]=paste(gm_out,proj_polys@data[,"tile_id"],".csv",sep="")
@@ -82,7 +85,7 @@ run_gridmetrics=function(
 
     coms=apply(coms_df,1,paste,collapse=" ")
 
-    for(i in 1:nrow(proj)){
+    for(i in 1:nrow(proj_polys@data)){
       writeLines(gsub(",","\n",proj_polys@data[i,"las_file"]),proj_polys@data[i,"las_txt"])
       writeLines(gsub(",","\n",proj_polys@data[i,"dtm_file"]),proj_polys@data[i,"dtm_txt"])
     }
