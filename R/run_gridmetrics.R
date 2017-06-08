@@ -22,6 +22,9 @@ run_gridmetrics=function(
 
   ,dir_dtm=NA #in case drive paths are wrong (External drives...)
   ,dir_las=NA #in case drive paths are wrong (External drives...)
+
+  ,skip_existing=T
+
   ,... #additonal arguments to fns
 
   ){
@@ -38,7 +41,7 @@ run_gridmetrics=function(
   proc_time=format(Sys.time(),"%Y%b%d_%H%M%S")
 
   #create temp folder
-  gm_out=backslash(paste(dir_out,"/gridmetrics_csv/",proc_time,"/",sep=""))
+  gm_out=backslash(paste(dir_out,"/gridmetrics_csv/",sep=""))
   if(!dir.exists(gm_out)) try(dir.create(gm_out,recursive=T))
 
   #create csv folder dump
@@ -65,6 +68,15 @@ run_gridmetrics=function(
   if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(as.character(proj_polys@data[,"dtm_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
   if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(as.character(proj_polys@data[,"las_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
 
+  #skip existing files
+  if(skip_existing){
+    files_done=list.files(gm_out,pattern="[.]csv")
+    ids_done=gsub("_.*","",files_done)
+    files_exist=as.character(proj_polys@data[,"tile_id"]) %in% ids_done
+    proj_polys=subset(proj_polys,subset=!files_exist)
+  }
+  print("skip files");print(Sys.time())
+
   #prepare output directory
   proj_polys@data[,"outf"]=paste(gm_out,proj_polys@data[,"tile_id"],".csv",sep="")
 
@@ -85,13 +97,26 @@ run_gridmetrics=function(
 
     coms=apply(coms_df,1,paste,collapse=" ")
 
+    print("set up commands");print(Sys.time())
+
     for(i in 1:nrow(proj_polys@data)){
       writeLines(gsub(",","\n",proj_polys@data[i,"las_file"]),proj_polys@data[i,"las_txt"])
       writeLines(gsub(",","\n",proj_polys@data[i,"dtm_file"]),proj_polys@data[i,"dtm_txt"])
     }
+    print("create list of dtms and las files");print(Sys.time())
 
-    lapply(coms,shell);gc()
+    if(n_core>1){
 
+      clus=makeCluster(n_core)
+      clusterEvalQ(clus,{library(lasR);gc()})
+      parLapply(clus,coms,shell);gc()
+      gc();stopCluster(clus);gc()
+
+    }else{
+     lapply(coms,shell);gc()
+
+    }
+    print("run fusion");print(Sys.time())
   }
 
   if(!do_fusion){

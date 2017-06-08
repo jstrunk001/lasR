@@ -49,8 +49,8 @@
 lasR_subset=function(
   path_project
   ,path_shapefile
-  ,ignore_proj4=T
   ,dir_out=""
+  ,ignore_proj4=T
   ,return=F
   ,plot=T
   ){
@@ -72,17 +72,19 @@ lasR_subset=function(
   proj4string(tile_proj1)=proj4string(bounds)
 
   #intersect tiles and bounds
-  tiles_subset=gContains(bounds,tile_proj1,byid=T)
+  #tiles_subset=gContains(bounds,tile_proj1,byid=T)
+  tiles_subset=gIntersects(gBuffer(bounds,width=0),tile_proj1,byid=T,returnDense=TRUE)
   if(sum(unlist(tiles_subset))>0) tile_proj2=tile_proj1[tiles_subset[,1,drop=T],]
 
   if(plot){
-    plot(bounds)
+    plot(bounds,add=T)
     plot(tile_proj2,add=T)
   }
 
-  writeOGR(tile_proj2, dsn=gsub("\\$","",backslash(dir_out)), layer="subset.shp", driver="ESRI Shapefile")
-  write.csv(tile_proj2,paste(dir_out, "\\subset_intersections.csv",sep=""))
-  }
+  writeOGR(tile_proj2, dsn=gsub("\\$","",backslash(dir_out)), layer=paste(basename(path_project),"_subset",sep=""), driver="ESRI Shapefile")
+  write.csv(tile_proj2,paste(dir_out,"\\", paste(basename(path_project),"_subset.csv",sep=""),sep=""))
+
+}
 
 if(F){
 
