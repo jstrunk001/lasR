@@ -80,6 +80,8 @@ run_gridmetrics=function(
   #prepare output directory
   proj_polys@data[,"outf"]=paste(gm_out,proj_polys@data[,"tile_id"],".csv",sep="")
 
+  print(paste(nrow(proj_polys@data),"tiles to process"))
+
   #prepare batch commands
   if(do_fusion){
 
