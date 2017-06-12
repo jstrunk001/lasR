@@ -41,7 +41,7 @@
 #' metrics=gridmetrics(las_files=las_files,dtm_files=dtm_files)
 #' head(metrics)
 #'
-#'@import raster, plyr, data.table, rgeos, lidR
+#'@import raster, plyr, data.table, rgeos, lidR, DBI
 #'
 #'@export
 #'@seealso \code{\link{read_las}}\cr \code{\link{read_dtm}}\cr
@@ -215,7 +215,11 @@ gridmetrics=function(
     fn_area=function(area_res,x,y) length(unique(paste(round(x/area_res,0),round(y/area_res,0),sep="_")))*(area_res^2)
     metrics_in[,nms_area]=sapply(vol_res,fn_area,x_brk,y_brk)
 
-    if(as_list) return(unlist(metrics_in))
+    if(!is.na(con)){
+      require(DBI)
+      dbWriteTable(con,out_table, metrics_in)
+    }
+    if(!as_list) return(unlist(metrics_in))
     else return(metrics_in)
 
   }
