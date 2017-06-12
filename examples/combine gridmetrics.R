@@ -5,7 +5,7 @@ library(sqldf)
 #folders
 dir_csv="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\gridmetrics_csv\\"
 dir_sqlite="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\gridmetrics_sqlite\\"
-dir.create(dir_sqlite)
+if(!dir.existrs(dir_sqlite)) dir.create(dir_sqlite)
 
 #get list of csv files
 csv_files=list.files(dir_csv,full.names=T,pattern="[.]csv")
@@ -23,8 +23,8 @@ if(!tab_summ %in% tabs) dbWriteTable(db, tab_summ,summ_tab)
 #load files into sqlite database
 summ_tab_2=dbGetQuery(db, paste("select * from",tab_summ,"where status = 'not_loaded'" ))
 nr=nrow(summ_tab_2)
-#for(i in 1:nr){
-for(i in 1:3){
+for(i in 1:nr){
+#for(i in 1:3){
     file_i=summ_tab_2[i,"file"]
     tile_i=summ_tab_2[i,"tile"]
     dati=read.csv(file_i)
