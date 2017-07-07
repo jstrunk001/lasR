@@ -41,7 +41,7 @@ clip_plots=function(
     if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
   }
   print("load lasR_project");print(Sys.time())
-  browser()
+
   #fix drive paths in lasR_project
   if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(proj_polys@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
   if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
@@ -69,7 +69,7 @@ clip_plots=function(
   }
 
   #fix row names
-  row.names(plot_polys_in)=plot_polys_in@data[,id_field_plots]
+  row.names(plot_polys_in)=as.character(plot_polys_in@data[,id_field_plots])
 
   print("Get / create Plot Polys");print(Sys.time())
 
@@ -112,12 +112,12 @@ clip_plots=function(
   spl_dups=split(dups,dups$plot)
   dups_df=.fn_merge(spl_dups)
   plots_tiles_unq=rbind(no_dups_df,dups_df)
-  row.names(plots_tiles_unq)=plots_tiles_unq[,id_field_plots]
+  row.names(plots_tiles_unq)=as.character(plots_tiles_unq[,id_field_plots])
 
   print("merge duplicates");print(Sys.time())
 
   #add records to geometry
-  good_polys=names(plot_polys_ext) %in% (plots_tiles_unq[,id_field_plots])
+  good_polys=names(plot_polys_ext) %in% as.character(plots_tiles_unq[,id_field_plots])
   plot_polys_merge=SpatialPolygonsDataFrame(plot_polys_ext[good_polys,],plots_tiles_unq)
 
   if(do_plot){
