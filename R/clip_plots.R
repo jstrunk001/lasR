@@ -29,7 +29,7 @@ clip_plots=function(
   #load lasR_project
   if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
     if(!inherits(lasR_project,"sp")){
-      proj=read.csv(lasR_project)
+      proj=read.csv(lasR_project,stringsAsFactors =F)
       proj_polys0=bbox2polys(proj[,c("tile_id","mnx","mxx","mny","mxy")])
       row.names(proj)=proj[,"tile_id"]
       proj_polys=SpatialPolygonsDataFrame(proj_polys0,proj)
@@ -41,6 +41,7 @@ clip_plots=function(
     if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
   }
   print("load lasR_project");print(Sys.time())
+  browser()
   #fix drive paths in lasR_project
   if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(proj_polys@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
   if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
