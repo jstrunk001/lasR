@@ -25,6 +25,9 @@ run_gridmetrics=function(
 
   ,skip_existing=T
 
+  ,con=NA
+  ,table="gridmetrics"
+
   ,... #additonal arguments to fns
 
   ){
@@ -107,6 +110,7 @@ run_gridmetrics=function(
     }
     print("create list of dtms and las files");print(Sys.time())
 
+
     if(n_core>1){
 
       clus=makeCluster(n_core)
@@ -160,6 +164,29 @@ run_gridmetrics=function(
 
     return(res_i)
   }
+
+}
+
+do_shell=function(comi,idi,tab_out,emptyi,lock.name){
+
+  #test for completion status &
+  #create an empty file to denote that processing has not completed, then unlink the empty file
+  if(file.exists(emptyi)){
+    unlink(list.files(basename(emptyi),pattern=paste(idi)))
+    #clean records from database too
+  }
+  file(emptyi)
+  shell(comi)
+
+  dati=read.csv(list.files(pattern=paste(idi,".*[.]csv$",sep=""))[1])
+
+  #lock and write
+  ll = lock(lock.name)
+  dbWriteTable(db,tab_out,dati)
+  unlock(ll)
+
+  #
+  unlink(emptyi)
 
 }
 
