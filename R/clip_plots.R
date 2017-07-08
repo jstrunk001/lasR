@@ -37,7 +37,7 @@ clip_plots=function(
     if(inherits(lasR_project,"sp")) proj_polys=lasR_project
   }
   if(!is.na(lasR_project_polys[1])){
-    if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(lasR_project_polys)#readOGR(dirname(lasR_project_polys),basename(lasR_project_polys))
+    if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(lasR_project_polys,stringsAsFactors=F)#readOGR(dirname(lasR_project_polys),basename(lasR_project_polys))
     if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
   }
   print("load lasR_project");print(Sys.time())
@@ -50,7 +50,7 @@ clip_plots=function(
   plot_polys_in=NULL
   if(!is.na(plot_polys[1])){
     if(inherits(plot_polys,"sp")) plot_polys_in=plot_polys
-    if(inherits(plot_polys,"character")) plot_polys_in=readOGR(plot_polys)#readOGR(dirname(plot_polys),gsub("[.]shp","",basename(plot_polys)))
+    if(inherits(plot_polys,"character")) plot_polys_in=readOGR(plot_polys,stringsAsFactors=F)#readOGR(dirname(plot_polys),gsub("[.]shp","",basename(plot_polys)))
   }
   if(!is.na(unlist(idxy)[1]) & !inherits(plot_polys_in,"sp")){
     plot_polys_in=points2polys(idxy)
