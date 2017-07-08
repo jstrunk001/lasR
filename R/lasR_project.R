@@ -118,6 +118,7 @@ print("buffer");print(Sys.time())
   #create processing tiles
   proc_rast=raster(xmn=xmn,xmx=xmx,ymn=ymn,ymx=ymx,resolution=tile_size,crs=crs);gc()
   proc_rast[]=cellsFromExtent(proc_rast,extent(proc_rast));gc()
+  #browser()
   xy=as.data.frame(proc_rast,xy=T)
 print("tile scheme");print(Sys.time())
   #create sub-processing tiles (100x density) for intersection with polygons
