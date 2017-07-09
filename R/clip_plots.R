@@ -6,6 +6,7 @@ clip_plots=function(
   ,id_field_plots="plot"
   ,lasR_project=NA
   ,lasR_project_polys=NA
+  ,plot_tile_intersect=NA
   ,dir_out=NA
   ,height=F
   ,do_plot=F
@@ -25,6 +26,7 @@ clip_plots=function(
   require(parallel)
 
   if(!file.exists(dir_out)) dir.create(dir_out, recursive=T)
+  if(is.na(plot_tile_intersect)){
 
   #load lasR_project
   if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
@@ -42,9 +44,11 @@ clip_plots=function(
   }
   print("load lasR_project");print(Sys.time())
 
-  #fix drive paths in lasR_project
-  if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(proj_polys@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
-  if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
+  # #fix drive paths in lasR_project
+  # if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(proj_polys@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
+  # if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_las)paste(file.path(dir_las,basename(strsplit(...,",")[[1]])),collapse=","),dir_las=dir_las))
+  #
+
 
   #create sp objects for plots
   plot_polys_in=NULL
@@ -118,19 +122,33 @@ clip_plots=function(
 
   #add records to geometry
   good_polys=names(plot_polys_ext) %in% as.character(plots_tiles_unq[,id_field_plots])
-  plot_polys_merge=SpatialPolygonsDataFrame(plot_polys_ext[good_polys,],plots_tiles_unq)
 
-  if(do_plot){
-    plot(proj_polys_spdf)
+
+    plot_polys_merge=SpatialPolygonsDataFrame(plot_polys_ext[good_polys,],plots_tiles_unq)
+
+  }else{
+    plot_polys_merge=readOGR(plot_tile_intersect,stringsAsFactors=F)
+
+  }
+
+  #fix drive paths in lasR_project
+  if(!is.na(dir_dtm)) plot_polys_merge@data[,"dtm_file"]=unlist(lapply(plot_polys_merge@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
+  if(!is.na(dir_las)) plot_polys_merge@data[,"las_file"]=unlist(lapply(plot_polys_merge@data[,"las_file"],function(...,dir_las)paste(file.path(dir_las,basename(strsplit(...,",")[[1]])),collapse=","),dir_las=dir_las))
+
+
+
+  if(do_plot ){
+    if(! is.na(plot_tile_intersect)) plot(proj_polys_spdf)
     plot(plot_polys_merge,border="red",add=T,lwd=10)
   }
 
   #clip points
   spl_plots=sp::split(plot_polys_merge,1:nrow(plot_polys_merge))
-
+browser()
   if(n_core>1){
     clus=makeCluster(n_core)
-    parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
+    clusterEvalQ(clus,library(lasR))
+    res=parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
     stopCluster(clus)
   }
   if(n_core<2){
