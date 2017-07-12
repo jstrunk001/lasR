@@ -6,6 +6,7 @@ clip_plots=function(
   ,id_field_plots="plot"
   ,lasR_project=NA
   ,lasR_project_polys=NA
+  ,plot_tile_intersect=NA
   ,dir_out=NA
   ,height=F
   ,do_plot=F
@@ -13,6 +14,7 @@ clip_plots=function(
   ,n_core=6
   ,dir_dtm=NA #in case drive paths are wrong (External drives...)
   ,dir_las=NA #in case drive paths are wrong (External drives...)
+  ,skip_existing=T
 
 ){
   require(rgdal)
@@ -25,124 +27,153 @@ clip_plots=function(
   require(parallel)
 
   if(!file.exists(dir_out)) dir.create(dir_out, recursive=T)
+  dir_skip=file.path(dir_out,"skip")
+  if(!file.exists(dir_skip)) dir.create(dir_skip, recursive=T)
 
-  #load lasR_project
-  if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
-    if(!inherits(lasR_project,"sp")){
-      proj=read.csv(lasR_project)
-      proj_polys0=bbox2polys(proj[,c("tile_id","mnx","mxx","mny","mxy")])
-      row.names(proj)=proj[,"tile_id"]
-      proj_polys=SpatialPolygonsDataFrame(proj_polys0,proj)
+  if(is.na(plot_tile_intersect)){
+
+    #load lasR_project
+    if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
+      if(!inherits(lasR_project,"sp")){
+        proj=read.csv(lasR_project,stringsAsFactors =F)
+        proj_polys0=bbox2polys(proj[,c("tile_id","mnx","mxx","mny","mxy")])
+        row.names(proj)=proj[,"tile_id"]
+        proj_polys=SpatialPolygonsDataFrame(proj_polys0,proj)
+      }
+      if(inherits(lasR_project,"sp")) proj_polys=lasR_project
     }
-    if(inherits(lasR_project,"sp")) proj_polys=lasR_project
+    if(!is.na(lasR_project_polys[1])){
+      if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(lasR_project_polys,stringsAsFactors=F)#readOGR(dirname(lasR_project_polys),basename(lasR_project_polys))
+      if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
+    }
+    print("load lasR_project");print(Sys.time())
+
+    # #fix drive paths in lasR_project
+    # if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(proj_polys@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
+    # if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_las)paste(file.path(dir_las,basename(strsplit(...,",")[[1]])),collapse=","),dir_las=dir_las))
+    #
+
+
+    #create sp objects for plots
+    plot_polys_in=NULL
+    if(!is.na(plot_polys[1])){
+      if(inherits(plot_polys,"sp")) plot_polys_in=plot_polys
+      if(inherits(plot_polys,"character")) plot_polys_in=readOGR(plot_polys,stringsAsFactors=F)#readOGR(dirname(plot_polys),gsub("[.]shp","",basename(plot_polys)))
+    }
+    if(!is.na(unlist(idxy)[1]) & !inherits(plot_polys_in,"sp")){
+      plot_polys_in=points2polys(idxy)
+    }
+    if(!is.na(unlist(idxyd)[1]) & !inherits(plot_polys_in,"sp")){
+
+      seq1=c(seq(-pi,pi,.1),pi+.1)
+      circle1=data.frame(sin(seq1),cos(seq1))
+      spl_idxyd=split(idxyd,1:nrow(idxyd))
+      idxy=rbind.fill(lapply(spl_idxyd,function(x,circle1)data.frame(id=x[,1],x=circle1[,1]*x[,4]+x[,2],y=circle1[,2]*x[,4]+x[,3]),circle1))
+      row.names(idxyd)=idxyd[,1]
+
+      plot_polys_in0=points2polys(idxy)
+      plot_polys_in=SpatialPolygonsDataFrame(polys_in_0,data=idxyd)
+
+    }
+
+    #fix row names
+    row.names(plot_polys_in)=as.character(plot_polys_in@data[,id_field_plots])
+
+    print("Get / create Plot Polys");print(Sys.time())
+
+    #clean up self intersections
+    proj_polys_b=gBuffer(proj_polys, byid=TRUE, width=0)
+    plot_polys_b=gBuffer(plot_polys_in, byid=TRUE, width=0)
+
+    #clip data to match extents
+    ext_tile=as(extent(as.vector(t(bbox(proj_polys_b)))), "SpatialPolygons")
+    ext_plot=as(extent(as.vector(t(bbox(plot_polys_b)))), "SpatialPolygons")
+    plot_polys_ext=gIntersection(plot_polys_b,ext_tile, byid=T,drop_lower_td=T)
+    proj_polys_ext=gIntersection(proj_polys_b,ext_plot, byid=T,drop_lower_td=T)
+
+    #patch data back onto clipped polygons
+    row.names(proj_polys_ext)=gsub(" 1","",row.names(proj_polys_ext))
+    row.names(plot_polys_ext)=gsub(" 1","",row.names(plot_polys_ext))
+    keep_proj=row.names(proj_polys_b@data) %in% row.names(proj_polys_ext)
+    keep_plot=row.names(plot_polys_b@data) %in% row.names(plot_polys_ext)
+    proj_polys_b1=proj_polys_b[keep_proj,]
+    plot_polys_b1=plot_polys_b[keep_plot,]
+
+    plot_polys_spdf=SpatialPolygonsDataFrame(plot_polys_ext,plot_polys_b1@data)
+    proj_polys_spdf=SpatialPolygonsDataFrame(proj_polys_ext,proj_polys_b1@data)
+
+    print("clip, recombine plots with data");print(Sys.time())
+
+    #intersect plots with tiles
+    proj_plot_x=gIntersects(plot_polys_spdf,proj_polys_spdf, byid=T,returnDense=F)
+    proj_plot_x1=proj_plot_x[sapply(proj_plot_x,function(x)length(x)>0)]
+
+    print("intersect plots and tiles");print(Sys.time())
+
+    #parse intersections and compile data
+    plots_tiles=rbind.fill(mapply(function(x,y,plots,tiles){data.frame(plots[as.character(x),],tiles[y,],row.names=NULL)},names(proj_plot_x1),proj_plot_x1,SIMPLIFY = F, MoreArgs = list(plots=plot_polys_spdf@data,tiles=proj_polys_spdf@data)))
+
+    #merge duplicate records
+    dup_id=.dup2(plots_tiles$plot)
+    dups=plots_tiles[dup_id,]
+    no_dups_df=plots_tiles[!dup_id,]
+    spl_dups=split(dups,dups$plot)
+    dups_df=.fn_merge(spl_dups)
+    plots_tiles_unq=rbind(no_dups_df,dups_df)
+    row.names(plots_tiles_unq)=as.character(plots_tiles_unq[,id_field_plots])
+
+    print("merge duplicates");print(Sys.time())
+
+    #add records to geometry
+    good_polys=names(plot_polys_ext) %in% as.character(plots_tiles_unq[,id_field_plots])
+
+
+    plot_polys_merge=SpatialPolygonsDataFrame(plot_polys_ext[good_polys,],plots_tiles_unq)
+
+  }else{
+    plot_polys_merge=readOGR(plot_tile_intersect,stringsAsFactors=F)
+
   }
-  if(!is.na(lasR_project_polys[1])){
-    if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(dirname(lasR_project_polys),basename(lasR_project_polys))
-    if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
-  }
-  print("load lasR_project");print(Sys.time())
+
   #fix drive paths in lasR_project
-  if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(proj_polys@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
-  if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(proj_polys@data[,"las_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
+  if(!is.na(dir_dtm)) plot_polys_merge@data[,"dtm_file"]=unlist(lapply(plot_polys_merge@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
+  if(!is.na(dir_las)) plot_polys_merge@data[,"las_file"]=unlist(lapply(plot_polys_merge@data[,"las_file"],function(...,dir_las)paste(file.path(dir_las,basename(strsplit(...,",")[[1]])),collapse=","),dir_las=dir_las))
 
-  #create sp objects for plots
-  plot_polys_in=NULL
-  if(!is.na(plot_polys[1])){
-    if(inherits(plot_polys,"sp")) plot_polys_in=plot_polys
-    if(inherits(plot_polys,"character")) plot_polys_in=readOGR(dirname(plot_polys),gsub("[.]shp","",basename(plot_polys)))
-  }
-  if(!is.na(unlist(idxy)[1]) & !inherits(plot_polys_in,"sp")){
-    plot_polys_in=points2polys(idxy)
-  }
-  if(!is.na(unlist(idxyd)[1]) & !inherits(plot_polys_in,"sp")){
 
-    seq1=c(seq(-pi,pi,.1),pi+.1)
-    circle1=data.frame(sin(seq1),cos(seq1))
-    spl_idxyd=split(idxyd,1:nrow(idxyd))
-    idxy=rbind.fill(lapply(spl_idxyd,function(x,circle1)data.frame(id=x[,1],x=circle1[,1]*x[,4]+x[,2],y=circle1[,2]*x[,4]+x[,3]),circle1))
-    row.names(idxyd)=idxyd[,1]
 
-    plot_polys_in0=points2polys(idxy)
-    plot_polys_in=SpatialPolygonsDataFrame(polys_in_0,data=idxyd)
-
-  }
-
-  #fix row names
-  row.names(plot_polys_in)=plot_polys_in@data[,id_field_plots]
-
-  print("Get / create Plot Polys");print(Sys.time())
-
-  #clean up self intersections
-  proj_polys_b=gBuffer(proj_polys, byid=TRUE, width=0)
-  plot_polys_b=gBuffer(plot_polys_in, byid=TRUE, width=0)
-
-  #clip data to match extents
-  ext_tile=as(extent(as.vector(t(bbox(proj_polys_b)))), "SpatialPolygons")
-  ext_plot=as(extent(as.vector(t(bbox(plot_polys_b)))), "SpatialPolygons")
-  plot_polys_ext=gIntersection(plot_polys_b,ext_tile, byid=T,drop_lower_td=T)
-  proj_polys_ext=gIntersection(proj_polys_b,ext_plot, byid=T,drop_lower_td=T)
-
-  #patch data back onto clipped polygons
-  row.names(proj_polys_ext)=gsub(" 1","",row.names(proj_polys_ext))
-  row.names(plot_polys_ext)=gsub(" 1","",row.names(plot_polys_ext))
-  keep_proj=row.names(proj_polys_b@data) %in% row.names(proj_polys_ext)
-  keep_plot=row.names(plot_polys_b@data) %in% row.names(plot_polys_ext)
-  proj_polys_b1=proj_polys_b[keep_proj,]
-  plot_polys_b1=plot_polys_b[keep_plot,]
-
-  plot_polys_spdf=SpatialPolygonsDataFrame(plot_polys_ext,plot_polys_b1@data)
-  proj_polys_spdf=SpatialPolygonsDataFrame(proj_polys_ext,proj_polys_b1@data)
-
-  print("clip, recombine plots with data");print(Sys.time())
-
-  #intersect plots with tiles
-  proj_plot_x=gIntersects(plot_polys_spdf,proj_polys_spdf, byid=T,returnDense=F)
-  proj_plot_x1=proj_plot_x[sapply(proj_plot_x,function(x)length(x)>0)]
-
-  print("intersect plots and tiles");print(Sys.time())
-
-  #parse intersections and compile data
-  plots_tiles=rbind.fill(mapply(function(x,y,plots,tiles){data.frame(plots[as.character(x),],tiles[y,],row.names=NULL)},names(proj_plot_x1),proj_plot_x1,SIMPLIFY = F, MoreArgs = list(plots=plot_polys_spdf@data,tiles=proj_polys_spdf@data)))
-
-  #merge duplicate records
-  dup_id=.dup2(plots_tiles$plot)
-  dups=plots_tiles[dup_id,]
-  no_dups_df=plots_tiles[!dup_id,]
-  spl_dups=split(dups,dups$plot)
-  dups_df=.fn_merge(spl_dups)
-  plots_tiles_unq=rbind(no_dups_df,dups_df)
-  row.names(plots_tiles_unq)=plots_tiles_unq[,id_field_plots]
-
-  print("merge duplicates");print(Sys.time())
-
-  #add records to geometry
-  good_polys=names(plot_polys_ext) %in% (plots_tiles_unq[,id_field_plots])
-  plot_polys_merge=SpatialPolygonsDataFrame(plot_polys_ext[good_polys,],plots_tiles_unq)
-
-  if(do_plot){
-    plot(proj_polys_spdf)
+  if(do_plot ){
+    if(! is.na(plot_tile_intersect)) plot(proj_polys_spdf)
     plot(plot_polys_merge,border="red",add=T,lwd=10)
   }
+
+  #skip existing files
+  if(skip_existing){
+    files_out_dir=unlist(c(list.files(dir_out,pattern="[.]las"),list.files(dir_skip,pattern="[.]las")))
+    out_nms=paste("plot_",plot_polys_merge@data$plot,".las",sep="")
+    plot_polys_merge=plot_polys_merge[!out_nms %in% files_out_dir,]
+  }
+
+  #write shapefile of intersections
+  dir_overlap=file.path(dir_out,"plot_tile_overlap")
+  if(!dir.exists(dir_overlap)) dir.create(dir_overlap)
+  if(!file.exists(paste(dir_overlap,"plot_merge_tiles.shp",sep="\\"))) writeOGR(plot_polys_merge,dir_overlap,"plot_merge_tiles", driver="ESRI Shapefile")
 
   #clip points
   spl_plots=sp::split(plot_polys_merge,1:nrow(plot_polys_merge))
 
   if(n_core>1){
     clus=makeCluster(n_core)
-    parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
+    clusterEvalQ(clus,library(lasR))
+    res=parLapply(clus,spl_plots,.try_clip_plots,dir_out = dir_out,height=height,id=id_field_plots)
     stopCluster(clus)
   }
   if(n_core<2){
-    lapply(spl_plots,.try_clip_plots,dir_out = dir_out,height=height)
+    lapply(spl_plots,.try_clip_plots,dir_out = dir_out,height=height,id=id_field_plots)
   }
 
   #.try_clip_plots(spl_plots[[2]],dir_out = dir_out)
   print("clip plots");print(Sys.time())
 
-  #write shapefile of intersections
-  dir_overlap=file.path(dir_out,"plot_tile_overlap")
-  if(!dir.exists(dir_overlap)) dir.create(dir_overlap)
-  if(!file.exists(paste(dir_overlap,"plot_merge_tiles.shp",sep="\\"))) writeOGR(plot_polys_merge,dir_overlap,"plot_merge_tiles", driver="ESRI Shapefile")
 
   print("write outputs");print(Sys.time())
 
@@ -184,7 +215,7 @@ clip_plots=function(
 
   require(lasR)
 
-  .clip_plots=function(x,dir_out,return=F,height=T){
+  .clip_plots=function(x,id,dir_out,return=F,height=T){
 
     require(lidR)
     require(lasR)
@@ -215,9 +246,22 @@ clip_plots=function(
       las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
     }
 
+    if(class(las_poly)!="LAS"){
+      skip_file=file.path(dir_out,"skip",paste(id,"_",x@data[1,id],".las",sep=""))
+      file.create(skip_file)
+      return()
+    }
 
     if(height) las_hts = lasnormalize(las_poly, dtm = dtm_poly)
     if(!height) las_hts = las_poly
+
+
+    if(class(las_hts)!="LAS"){
+      skip_file=file.path(dir_out,"skip",paste(id,"_",x@data[1,id],".las",sep=""))
+      file.create(skip_file)
+      return()
+    }
+
     las_hts@header@data['X scale factor'] = 0.001
     las_hts@header@data['Y scale factor'] = 0.001
     las_hts@header@data['Z scale factor'] = 0.001
@@ -227,9 +271,16 @@ clip_plots=function(
 
     #write to file
     if(!dir.exists(dir_out))dir.create(dir_out)
-    out_file_i=file.path(dir_out,paste(names(x)[1],"_",x@data[,1],".las",sep=""))
-    writeLAS(las_hts,out_file_i)
 
+    if(class(las_hts)=="LAS"){
+      out_file_i=file.path(dir_out,paste(id,"_",x@data[1,id],".las",sep=""))
+      err=try(writeLAS(las_hts,out_file_i))
+
+    }else{
+
+      skip_file=file.path(dir_out,"skip",paste(id,"_",x@data[1,id],".las",sep=""))
+      file.create(skip_file)
+    }
     # writeLAS(las_poly,"C:\\R\\analyses\\lidR_bug\\sample_elevation.las")
     # writeLAS(las_poly,"C:\\R\\analyses\\lidR_bug\\sample_height.las")
     # writeRaster(dtm_poly,"C:\\R\\analyses\\lidR_bug\\sample_dtm.tif")
