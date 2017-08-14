@@ -6,7 +6,7 @@
 #repurposed by Jacob Strunk for multivariate responses - May 31, 2017
 
 rasterizeLAS <- function(las, r, fun=compute_metrics2, background=NA, mask=FALSE, update=FALSE, updateValue='all', filename="", na.rm=TRUE, ...) {
-browser()
+
   require("data.table")
 
   las[,"cells"] <- cellFromXY(r, las[,c("X","Y")])
@@ -21,7 +21,7 @@ browser()
 
 	ag1=las_in[,fun(.SD),by=list("cells")]
 
-	browser()
+
 	ag1=aggregate(cbind("X","Y","Z"),by=list("cells"),data=las_in,FUN=fun)
 
 	#
