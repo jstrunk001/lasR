@@ -1,3 +1,4 @@
+if(F){
 #
 # tile_project(
 #   dir_las="C:\\Temp\\las_test\\"
@@ -32,7 +33,9 @@
 #     ,gridmetrics=c("lasR")
 #     ,n_core=1
 #   )
+}
 if(F){
+
   library(rgdal)
   library(lasR)
 
