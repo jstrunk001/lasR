@@ -122,7 +122,7 @@ print("buffer");print(Sys.time())
   xy=as.data.frame(proc_rast,xy=T)
 print("tile scheme");print(Sys.time())
   #create sub-processing tiles (100x density) for intersection with polygons
-  proc_rast1=raster(xmn=xmn,xmx=xmx,ymn=xmn,ymx=ymx,resolution=tile_size/10,crs=crs);gc()
+  proc_rast1=raster(xmn=xmn,xmx=xmx,ymn=ymn,ymx=ymx,resolution=tile_size/10,crs=crs);gc()
   xy1=as.data.frame(proc_rast1,xy=T);gc()
   xy1[,"layer"]=NULL;gc()
   xy1[,"tile_id"]=cellFromXY(proc_rast, xy1[,c(1:2)]);gc()
@@ -166,6 +166,8 @@ print("Merge");print(Sys.time())
   ts2=tile_size/2
   bbx=data.frame(mnx=crd[,"x"]-ts2,mny=crd[,"y"]-ts2,mxx=crd[,"x"]+ts2,mxy=crd[,"y"]+ts2)
   tiles_bbx=data.frame(tiles_coords,bbx)
+
+  #plot(crd[,"x"],crd[,"y"])
 
   #save everything to sqlite database?
 
