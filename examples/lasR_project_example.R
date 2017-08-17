@@ -43,8 +43,8 @@ if(F){
 
   lasR_project(
     dir_las="G:\\NAIP_dsm_2015\\las_files\\"
-    ,dir_dtm="D:\\data\\FUSION_DTMS\\"
-    ,dir_project="C:\\projects\\2017_WA_DSM_Pilot\\"
+    ,dir_dtm="c:\\FUSION_DTMS\\"
+    ,dir_project="d:\\projects\\2017_WA_DSM_Pilot\\"
     ,project="2017Aug_NAIP"
     ,project_dtm="naip"
     ,project_las="naip"
@@ -65,16 +65,20 @@ if(F){
   # )
 }
 if(F){
-  #library(lasR)
+
+  library(lasR)
 
 
   gmi=run_gridmetrics(
-    lasR_project_poly="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\lasR_project\\intersections.csv_subset.shp"
-    ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\"
-    ,dir_dtm="C:\\data\\FUSION_DTMS\\"
-    ,dir_las="F:\\phodar\\NAIP_2015\\las_files\\"
-    ,n_core=7
+
+    lasR_project_poly="C:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\lasR_project001.shp"
+    ,dir_out="d:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\gridmetrics\\"
+    ,dir_dtm="c:\\data\\FUSION_DTMS\\"
+    ,dir_las="G:\\NAIP_dsm_2015\\las_files\\"
+    ,n_core=40
+
   )
+
 
 
 }

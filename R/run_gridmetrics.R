@@ -115,11 +115,11 @@ run_gridmetrics=function(
 
       clus=makeCluster(n_core)
       clusterEvalQ(clus,{library(lasR);gc()})
-      parLapply(clus,coms,shell);gc()
+      res=parLapply(clus,coms,shell);gc()
       gc();stopCluster(clus);gc()
 
     }else{
-     lapply(coms,shell);gc()
+     lapply(coms,shell) ;gc()
 
     }
     print("run fusion");print(Sys.time())
