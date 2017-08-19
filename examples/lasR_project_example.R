@@ -71,11 +71,11 @@ if(F){
 
   gmi=run_gridmetrics(
 
-    lasR_project_poly="C:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\lasR_project001.shp"
-    ,dir_out="d:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\gridmetrics\\"
+    lasR_project_poly="d:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\lasR_project001.shp"
+    ,dir_out="c:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\gridmetrics\\"
     ,dir_dtm="c:\\data\\FUSION_DTMS\\"
     ,dir_las="G:\\NAIP_dsm_2015\\las_files\\"
-    ,n_core=40
+    ,n_core=15
 
   )
 

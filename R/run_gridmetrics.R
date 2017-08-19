@@ -28,6 +28,8 @@ run_gridmetrics=function(
   ,con=NA
   ,table="gridmetrics"
 
+  ,existing_coms=c(NA,"C:\\Temp\\run_gridmetrics\\2017Aug17_100740\\all_commands.txt")   #skip setting up new dtm and las files
+
   ,... #additonal arguments to fns
 
   ){
@@ -50,6 +52,8 @@ run_gridmetrics=function(
   #create csv folder dump
   temp=backslash(paste(temp,"/",proc_time,"/",sep=""))
   if(!dir.exists(temp)) try(dir.create(temp,recursive=T))
+
+  coms_out=file.path(temp,"all_commands.txt")
 
  #load lasR_project
   if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
@@ -101,15 +105,21 @@ run_gridmetrics=function(
     if(is.null(fusion_switches)) coms_df=data.frame(gridmetrics_type[1],proj_polys@data[,c("switches","dtm_txt")],heightbreak,cellsize,proj_polys@data[,"outf"],proj_polys@data[,"las_txt"])
 
     coms=apply(coms_df,1,paste,collapse=" ")
+    writeLines(coms,coms_out)
 
     print("set up commands");print(Sys.time())
 
-    for(i in 1:nrow(proj_polys@data)){
-      writeLines(gsub(",","\n",proj_polys@data[i,"las_file"]),proj_polys@data[i,"las_txt"])
-      writeLines(gsub(",","\n",proj_polys@data[i,"dtm_file"]),proj_polys@data[i,"dtm_txt"])
-    }
-    print("create list of dtms and las files");print(Sys.time())
+    if(!is.na(existing_coms[1]) & file.exists(existing_coms[1])){
 
+      coms=readLines(existing_com)
+
+    }else{
+      for(i in 1:nrow(proj_polys@data)){
+        writeLines(gsub(",","\n",proj_polys@data[i,"las_file"]),proj_polys@data[i,"las_txt"])
+        writeLines(gsub(",","\n",proj_polys@data[i,"dtm_file"]),proj_polys@data[i,"dtm_txt"])
+      }
+      print("create list of dtms and las files");print(Sys.time())
+    }
 
     if(n_core>1){
 
