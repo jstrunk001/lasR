@@ -50,7 +50,8 @@ run_gridmetrics=function(
   if(!dir.exists(gm_out)) try(dir.create(gm_out,recursive=T))
 
   #create csv folder dump
-  temp=backslash(paste(temp,"/",proc_time,"/",sep=""))
+  if(is.na(existing_coms)) temp = backslash(paste(temp,"/",proc_time,"/",sep=""))
+  if(!is.na(existing_coms)) temp = paste(dirname(existing_coms),"/",sep="")
   if(!dir.exists(temp)) try(dir.create(temp,recursive=T))
 
   coms_out=file.path(temp,"all_commands.txt")
@@ -105,15 +106,13 @@ run_gridmetrics=function(
     if(is.null(fusion_switches)) coms_df=data.frame(gridmetrics_type[1],proj_polys@data[,c("switches","dtm_txt")],heightbreak,cellsize,proj_polys@data[,"outf"],proj_polys@data[,"las_txt"])
 
     coms=apply(coms_df,1,paste,collapse=" ")
-    writeLines(coms,coms_out)
 
     print("set up commands");print(Sys.time())
 
-    if(!is.na(existing_coms[1]) & file.exists(existing_coms[1])){
+    if(is.na(existing_coms[1]) ){
 
-      coms=readLines(existing_com)
+      writeLines(coms,coms_out)
 
-    }else{
       for(i in 1:nrow(proj_polys@data)){
         writeLines(gsub(",","\n",proj_polys@data[i,"las_file"]),proj_polys@data[i,"las_txt"])
         writeLines(gsub(",","\n",proj_polys@data[i,"dtm_file"]),proj_polys@data[i,"dtm_txt"])
@@ -129,6 +128,7 @@ run_gridmetrics=function(
       gc();stopCluster(clus);gc()
 
     }else{
+
      lapply(coms,shell) ;gc()
 
     }

@@ -71,16 +71,21 @@ if(F){
 
   gmi=run_gridmetrics(
 
-    lasR_project_poly="d:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\lasR_project001.shp"
+    lasR_project_poly="c:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\lasR_project001.shp"
     ,dir_out="c:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\gridmetrics\\"
     ,dir_dtm="c:\\data\\FUSION_DTMS\\"
     ,dir_las="G:\\NAIP_dsm_2015\\las_files\\"
     ,n_core=15
-
+    ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Aug19_141611\\all_commands.txt"
   )
-
-
 
 }
 
+# if(F){
+#   coms=readLines("C:\\Temp\\run_gridmetrics\\2017Aug19_141611\\all_commands.txt")
+#   clus=makeCluster(15)
+#   clusterEvalQ(clus,{library(lasR);gc()})
+#   res=parLapply(clus,coms,shell);gc()
+#   gc();stopCluster(clus);gc()
+# }
 
