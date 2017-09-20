@@ -1,5 +1,5 @@
 
-run_gridmetrics=function(
+run_gridmetrics_test=function(
 
   lasR_project=NA
   ,lasR_project_polys=NA
@@ -30,6 +30,8 @@ run_gridmetrics=function(
 
   ,existing_coms=c(NA,"C:\\Temp\\run_gridmetrics\\2017Aug17_100740\\all_commands.txt")   #skip setting up new dtm and las files
 
+  ,cache_las=c(NA,"c:\\temp\\run_gridmetrics\\cache\\")
+  ,las_clump_n=50
   ,... #additonal arguments to fns
 
   ){
@@ -53,6 +55,7 @@ run_gridmetrics=function(
   if(is.na(existing_coms)) temp = backslash(paste(temp,"/",proc_time,"/",sep=""))
   if(!is.na(existing_coms)) temp = paste(dirname(existing_coms),"/",sep="")
   if(!dir.exists(temp)) try(dir.create(temp,recursive=T))
+  if(!is.na(cache_las[1])) dir.create(cache_las[1])
 
   coms_out=file.path(temp,"all_commands.txt")
 
@@ -74,9 +77,75 @@ run_gridmetrics=function(
   #fix drive paths in lasR_project
 
   if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(as.character(proj_polys@data[,"dtm_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
-  if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(as.character(proj_polys@data[,"las_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
-#browser()
+  if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(as.character(proj_polys@data[,"las_file"]),function(...,dir_las)paste(file.path(dir_las,basename(strsplit(...,",")[[1]])),collapse=","),dir_las=dir_las))
 
+
+
+
+  #examine ways to clump files and copy them to ssd drive, then run gridmetrics against the
+  #files on the ssd drive.
+  if(T){
+
+
+    unq_las=unique(unlist(strsplit(proj_polys@data[,"las_file"],",")))
+
+    nc=length(unq_las)
+    nr=nrow(proj_polys@data)
+
+    f1=function(x,y){
+
+      l1=list(grep(basename(x),y))
+      names(l1)=x
+      l1
+
+    }
+
+    require(parallel)
+    clus1=makeCluster(35)
+    recs_match=parLapply(clus1,unq_las,f1,proj_polys@data[,"las_file"])
+    stopCluster(clus1)
+    recs_match1=unlist(recs_match,F)
+
+    #get files by row
+    ls_las=lapply(proj_polys@data[,"las_file"],function(x)unlist(strsplit(x,",")))
+
+    #create clumps of las_clump files
+
+    dat_in=proj_polys@data
+
+    dat_list=list()
+    clumps=list()
+    j=1
+    browser()
+    for( i in 1:length(recs_match1) ){
+
+      nbs_i=unique(unlist(strsplit(dat_in[recs_match[[1]][[1]],"las_file"],",")))
+      clumps[[j]]=unlist(list(clumps[i],nbs_i))
+      if(length(clumps[[j]])>las_clump_n-1) j=j+1
+
+
+      #experiment
+      recs_i=unlist(recs_match1[nbs_i])
+      dat_list[[i]]=dat_in[recs_i,]
+      dat_list[[i]][,"clump"]=j
+
+
+    }
+
+
+    unique(unlist(strsplit(proj_polys@data[recs_match[[1]][[1]],"las_file"],",")))
+    unique(unlist(strsplit(proj_polys@data[recs_match[[2]][[1]],"las_file"],",")))
+    unique(unlist(strsplit(proj_polys@data[recs_match[[3]][[1]],"las_file"],",")))
+
+
+    proj_polys@data[recs_match[[2]][[1]],"las_file"]
+    recs_match[[1]][[1]]  %in% recs_match[[2]][[1]]
+
+
+    #recs_match=lapply(unq_las,f1,proj_polys@data[,"las_file"])
+
+
+  }
 
   #skip existing files
   if(skip_existing){
@@ -201,21 +270,14 @@ do_shell=function(comi,idi,tab_out,emptyi,lock.name){
   unlink(emptyi)
 
 }
+library(lasR)
+run_gridmetrics_test(
 
+  lasR_project_poly="c:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\lasR_project001.shp"
+  ,dir_out="c:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\gridmetrics\\"
+  ,dir_dtm="c:\\data\\FUSION_DTMS\\"
+  ,dir_las="G:\\NAIP_dsm_2015\\las_files\\"
+  ,n_core=15
+  ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Aug19_141611\\all_commands.txt"
+)
 
-if(F){
-
-  library(lasR)
-
-  gmi=run_gridmetrics(
-    lasR_project_polys="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\lasR_project001.shp"
-    ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\"
-    ,gridmetrics=c("lasR")
-    ,n_core=1
-    ,dir_dtm="C:\\data\\FUSION_DTMS\\" #in case drive paths are wrong (External drives...)
-    ,dir_las="G:\\data\\2015_naip_phodar\\" #in case drive paths are wrong (External drives...)
-    ,elev_metrics=F
-    ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Aug19_141611\\all_commands.txt"
-  )
-
-}
