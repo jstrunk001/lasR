@@ -42,7 +42,7 @@ if(F){
  # proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_counties_WASP")
 
   lasR_project(
-    dir_las="G:\\NAIP_dsm_2015\\las_files\\"
+    dir_las="D:\\naip_2015_laz"
     ,dir_dtm="c:\\FUSION_DTMS\\"
     ,dir_project="d:\\projects\\2017_WA_DSM_Pilot\\"
     ,project="2017Aug_NAIP"

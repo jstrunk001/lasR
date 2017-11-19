@@ -100,6 +100,7 @@ lasR_project=function(
   #create sqlite database / tables
 
   #inventory las and dtms
+
   if(scan_las) scan_las(project=project_las, project_year=las_year,dir_las=dir_las)
   if(scan_dtms) scan_dtm(project=project_dtm, project_year=dtm_year,dir_dtm=dir_dtm)
 
@@ -148,7 +149,7 @@ print("extract dtm polygons");print(Sys.time())
 print("extract las polygons");print(Sys.time())
 
   #create dataframe from dtm and las intersections on tiles
-  tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
+  tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F),fill=T))
   #sum(duplicated(tiles_las_df[,"las_file"]))
 print("create dataframe from dtm and las intersections on tiles A");print(Sys.time())
   tiles_dtm_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,dtm_file=file,stringsAsFactors=F)},ex_dtm1,names(ex_dtm1),SIMPLIFY=F)))
