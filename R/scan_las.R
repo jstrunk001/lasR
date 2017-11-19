@@ -33,7 +33,7 @@
 #'
 #'scan_las(project="test1", project_year="2015",dir_las="C:\\temp\\lidar_test\\",con=con_inv)
 #'
-#'@import maptools sp uuid
+#'@import maptools sp uuid rgdal
 #'
 #'@export
 #
@@ -51,6 +51,7 @@ scan_las=function(
     ,create_polys=T
     ){
   require(uuid)
+  require(rgdal)
 
   proc_date=Sys.time()
 
@@ -133,7 +134,7 @@ scan_las=function(
 
     polys_rds=paste(project_id_folder,"las_polys.rds",sep="")
     polys_shp=paste(project_id_folder,"las_polys.shp",sep="")
-browser()
+
     las_polys=bbox2polys(las_id_df[,c("las_id","min_x","max_x","min_y","max_y")])
     row.names(las_id_df)=las_id_df[,"las_id"]
 
@@ -141,7 +142,7 @@ browser()
 
     #save outputs
     try(saveRDS(las_polys,polys_rds))
-    try(maptools::writePolyShape(las_polys,polys_shp))
+    try(rgdal::writeOGR(las_polys,dsn=dirname(polys_shp),layer=basename(polys_shp),driver="ESRI Shapefile"))
 
   }
 
