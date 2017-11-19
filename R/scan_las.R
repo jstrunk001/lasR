@@ -133,7 +133,7 @@ scan_las=function(
     las_id_df=read.csv(las_id_csv,stringsAsFactors =F)
 
     polys_rds=paste(project_id_folder,"las_polys.rds",sep="")
-    polys_shp=paste(project_id_folder,"las_polys.shp",sep="")
+    polys_shp=paste(project_id_folder,"las_polys",sep="")
 
     las_polys=bbox2polys(las_id_df[,c("las_id","min_x","max_x","min_y","max_y")])
     row.names(las_id_df)=las_id_df[,"las_id"]
