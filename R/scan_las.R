@@ -142,7 +142,7 @@ scan_las=function(
 
     #save outputs
     try(saveRDS(las_polys,polys_rds))
-    try(rgdal::writeOGR(las_polys,dsn=dirname(polys_shp),layer=basename(polys_shp),driver="ESRI Shapefile",overwrite_layer=T))
+    try(rgdal::writeOGR(las_polys,dsn=project_id_folder,layer="las_polys",driver="ESRI Shapefile",overwrite_layer=T))
 
   }
 
