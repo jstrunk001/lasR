@@ -31,20 +31,24 @@ clip_plots=function(
   if(!file.exists(dir_skip)) dir.create(dir_skip, recursive=T)
 
   if(is.na(plot_tile_intersect)){
-
+    print("plot_tile_intersect")
     #load lasR_project
     if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
-      if(!inherits(lasR_project,"sp")){
+      if(!grepl("spatial",class(lasR_project), ignore.case = T)){
+        print("!inherits(lasR_project,\"sp\")")
         proj=read.csv(lasR_project,stringsAsFactors =F)
         proj_polys0=bbox2polys(proj[,c("tile_id","mnx","mxx","mny","mxy")])
         row.names(proj)=proj[,"tile_id"]
         proj_polys=SpatialPolygonsDataFrame(proj_polys0,proj)
       }
-      if(inherits(lasR_project,"sp")) proj_polys=lasR_project
+      if(grepl("spatial",class(lasR_project), ignore.case = T)) proj_polys=lasR_project
     }
     if(!is.na(lasR_project_polys[1])){
-      if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(lasR_project_polys,stringsAsFactors=F)#readOGR(dirname(lasR_project_polys),basename(lasR_project_polys))
-      if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
+      print("!is.na(lasR_project_polys[1])")
+      if(!grepl("spatial",class(lasR_project_polys), ignore.case = T)) proj_polys=readOGR(lasR_project_polys,stringsAsFactors=F)#readOGR(dirname(lasR_project_polys),basename(lasR_project_polys))
+      if(grepl("spatial",class(lasR_project_polys), ignore.case = T)) proj_polys=lasR_project_polys
+
+
     }
     print("load lasR_project");print(Sys.time())
 
@@ -57,13 +61,13 @@ clip_plots=function(
     #create sp objects for plots
     plot_polys_in=NULL
     if(!is.na(plot_polys[1])){
-      if(inherits(plot_polys,"sp")) plot_polys_in=plot_polys
-      if(inherits(plot_polys,"character")) plot_polys_in=readOGR(plot_polys,stringsAsFactors=F)#readOGR(dirname(plot_polys),gsub("[.]shp","",basename(plot_polys)))
+      if(grepl("spatial",class(plot_polys), ignore.case = T)) plot_polys_in=plot_polys
+      if(grepl("character",class(plot_polys), ignore.case = T)) plot_polys_in=readOGR(plot_polys,stringsAsFactors=F)#readOGR(dirname(plot_polys),gsub("[.]shp","",basename(plot_polys)))
     }
-    if(!is.na(unlist(idxy)[1]) & !inherits(plot_polys_in,"sp")){
+    if(!is.na(unlist(idxy)[1]) & !grepl("spatial",class(plot_polys_in), ignore.case = T)){
       plot_polys_in=points2polys(idxy)
     }
-    if(!is.na(unlist(idxyd)[1]) & !inherits(plot_polys_in,"sp")){
+    if(!is.na(unlist(idxyd)[1]) & !grepl("spatial",class(plot_polys_in), ignore.case = T)){
 
       seq1=c(seq(-pi,pi,.1),pi+.1)
       circle1=data.frame(sin(seq1),cos(seq1))
@@ -111,17 +115,17 @@ clip_plots=function(
     print("intersect plots and tiles");print(Sys.time())
 
     #parse intersections and compile data
-    plots_tiles=rbind.fill(mapply(function(x,y,plots,tiles){data.frame(plots[as.character(x),],tiles[y,],row.names=NULL)},names(proj_plot_x1),proj_plot_x1,SIMPLIFY = F, MoreArgs = list(plots=plot_polys_spdf@data,tiles=proj_polys_spdf@data)))
+    plots_tiles=rbind.fill(mapply(function(x,y,plots,tiles){data.frame(plots[as.character(x),,drop=F],tiles[y,,drop=F],row.names=NULL)},names(proj_plot_x1),proj_plot_x1,SIMPLIFY = F, MoreArgs = list(plots=plot_polys_spdf@data,tiles=proj_polys_spdf@data)))
 
     #merge duplicate records
     dup_id=.dup2(plots_tiles$plot)
-    dups=plots_tiles[dup_id,]
-    no_dups_df=plots_tiles[!dup_id,]
+    dups=plots_tiles[dup_id,,drop=F]
+    no_dups_df=plots_tiles[!dup_id,,drop=F]
     spl_dups=split(dups,dups$plot)
     dups_df=.fn_merge(spl_dups)
     plots_tiles_unq=rbind(no_dups_df,dups_df)
     row.names(plots_tiles_unq)=as.character(plots_tiles_unq[,id_field_plots])
-
+browser()
     print("merge duplicates");print(Sys.time())
 
     #add records to geometry

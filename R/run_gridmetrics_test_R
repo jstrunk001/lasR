@@ -270,7 +270,7 @@ do_shell=function(comi,idi,tab_out,emptyi,lock.name){
   unlink(emptyi)
 
 }
-library(lasR)
+#library(lasR)
 run_gridmetrics_test(
 
   lasR_project_poly="c:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\lasR_project001.shp"

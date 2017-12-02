@@ -36,8 +36,8 @@ if(F){
 }
 if(F){
 
-  library(rgdal)
-  library(lasR)
+  #library(rgdal)
+  #library(lasR)
 
  # proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_counties_WASP")
 
@@ -71,18 +71,18 @@ if(F){
 
   gmi=run_gridmetrics(
 
-    lasR_project_poly="c:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\lasR_project001.shp"
-    ,dir_out="c:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\gridmetrics\\"
-    ,dir_dtm="c:\\data\\FUSION_DTMS\\"
-    ,dir_las="G:\\NAIP_dsm_2015\\las_files\\"
-    ,n_core=15
-    ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Aug19_141611\\all_commands.txt"
-  )
+    lasR_project_poly="D:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\lasR_project001.shp"
+    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\gridmetrics1\\"
+    ,dir_dtm="I:\\FUSION_DTMS\\"
+    ,dir_las="D:\\naip_2015_laz\\"
+    ,n_core=12
+    #,existing_coms="C:\\Temp\\run_gridmetrics\\2017Aug19_141611\\all_commands.txt"
+   )
 
 }
 if(F){
 
-  library(lasR)
+  #library(lasR)
 
 
   gmi=run_gridmetrics(
