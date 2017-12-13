@@ -33,7 +33,7 @@
 #'
 #'scan_las(project="test1", project_year="2015",dir_las="C:\\temp\\lidar_test\\",con=con_inv)
 #'
-#'@import maptools sp uuid rgdal
+#'@import maptools sp uuid
 #'
 #'@export
 #
@@ -50,8 +50,8 @@ scan_las=function(
     ,notes=""
     ,create_polys=T
     ){
+
   require(uuid)
-  require(rgdal)
 
   proc_date=Sys.time()
 
@@ -68,7 +68,8 @@ scan_las=function(
   exist_las_id_csv=file.exists(las_id_csv)
 
   if(!exist_project_id_folder) dir.create(project_id_folder,recursive=T)
-  if(exist_project_id_csv & exist_las_id_csv){
+
+  if(exist_project_id_csv){
 
     project_id_df=read.csv(project_id_csv)
     las_id_df = read.csv(las_id_csv)
@@ -103,9 +104,9 @@ scan_las=function(
   names_las_exist = names_las %in% las_id_df$file_name
   las_update = sum(!names_las_exist) > 0
 
-  #update las
+  #update lass
   if(las_update){
-    print("las_update")
+
     #identify missing records
     files_las=files_las[!names_las_exist]
 
@@ -133,16 +134,15 @@ scan_las=function(
     las_id_df=read.csv(las_id_csv,stringsAsFactors =F)
 
     polys_rds=paste(project_id_folder,"las_polys.rds",sep="")
-    polys_shp=paste(project_id_folder,"las_polys",sep="")
+    polys_shp=paste(project_id_folder,"las_polys.shp",sep="")
 
     las_polys=bbox2polys(las_id_df[,c("las_id","min_x","max_x","min_y","max_y")])
     row.names(las_id_df)=las_id_df[,"las_id"]
-
     las_polys=sp::SpatialPolygonsDataFrame(las_polys,las_id_df)
 
     #save outputs
     try(saveRDS(las_polys,polys_rds))
-    try(rgdal::writeOGR(las_polys,dsn=project_id_folder,layer="las_polys",driver="ESRI Shapefile",overwrite_layer=T))
+    try(maptools::writePolyShape(las_polys,polys_shp))
 
   }
 

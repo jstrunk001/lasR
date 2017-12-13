@@ -26,29 +26,25 @@ clip_plots=function(
   require(data.table)
   require(parallel)
 
-  if(!file.exists(dir_out)) dir.create(dir_out, recursive=T)
+  if(!file.exists(dir_out)) try(dir.create(dir_out, recursive=T),silent=T)
   dir_skip=file.path(dir_out,"skip")
-  if(!file.exists(dir_skip)) dir.create(dir_skip, recursive=T)
+  if(!file.exists(dir_skip)) try(dir.create(dir_skip, recursive=T),silent=T)
 
   if(is.na(plot_tile_intersect)){
-    print("plot_tile_intersect")
+
     #load lasR_project
     if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
-      if(!grepl("spatial",class(lasR_project), ignore.case = T)){
-        print("!inherits(lasR_project,\"sp\")")
+      if(!inherits(lasR_project,"SpatialPolygonsDataFrame")){
         proj=read.csv(lasR_project,stringsAsFactors =F)
         proj_polys0=bbox2polys(proj[,c("tile_id","mnx","mxx","mny","mxy")])
         row.names(proj)=proj[,"tile_id"]
         proj_polys=SpatialPolygonsDataFrame(proj_polys0,proj)
       }
-      if(grepl("spatial",class(lasR_project), ignore.case = T)) proj_polys=lasR_project
+      if(inherits(lasR_project,"SpatialPolygonsDataFrame")) proj_polys=lasR_project
     }
     if(!is.na(lasR_project_polys[1])){
-      print("!is.na(lasR_project_polys[1])")
-      if(!grepl("spatial",class(lasR_project_polys), ignore.case = T)) proj_polys=readOGR(lasR_project_polys,stringsAsFactors=F)#readOGR(dirname(lasR_project_polys),basename(lasR_project_polys))
-      if(grepl("spatial",class(lasR_project_polys), ignore.case = T)) proj_polys=lasR_project_polys
-
-
+      if(!inherits(lasR_project_polys,"SpatialPolygonsDataFrame")) proj_polys=readOGR(lasR_project_polys,stringsAsFactors=F)#readOGR(dirname(lasR_project_polys),basename(lasR_project_polys))
+      if(inherits(lasR_project_polys,"SpatialPolygonsDataFrame")) proj_polys=lasR_project_polys
     }
     print("load lasR_project");print(Sys.time())
 
@@ -61,13 +57,14 @@ clip_plots=function(
     #create sp objects for plots
     plot_polys_in=NULL
     if(!is.na(plot_polys[1])){
-      if(grepl("spatial",class(plot_polys), ignore.case = T)) plot_polys_in=plot_polys
-      if(grepl("character",class(plot_polys), ignore.case = T)) plot_polys_in=readOGR(plot_polys,stringsAsFactors=F)#readOGR(dirname(plot_polys),gsub("[.]shp","",basename(plot_polys)))
+      if(inherits(plot_polys,"SpatialPolygonsDataFrame")) plot_polys_in=plot_polys
+      if(inherits(plot_polys,"character")) plot_polys_in=readOGR(plot_polys,stringsAsFactors=F)#readOGR(dirname(plot_polys),gsub("[.]shp","",basename(plot_polys)))
+      if(is.null(plot_polys)) stop("Class of plot_polys must be character or SpatialPolygonsDataFrame")
     }
-    if(!is.na(unlist(idxy)[1]) & !grepl("spatial",class(plot_polys_in), ignore.case = T)){
+    if(!is.na(unlist(idxy)[1]) & !inherits(plot_polys_in,"SpatialPolygonsDataFrame")){
       plot_polys_in=points2polys(idxy)
     }
-    if(!is.na(unlist(idxyd)[1]) & !grepl("spatial",class(plot_polys_in), ignore.case = T)){
+    if(!is.na(unlist(idxyd)[1]) & !inherits(plot_polys_in,"SpatialPolygonsDataFrame")){
 
       seq1=c(seq(-pi,pi,.1),pi+.1)
       circle1=data.frame(sin(seq1),cos(seq1))
@@ -79,6 +76,7 @@ clip_plots=function(
       plot_polys_in=SpatialPolygonsDataFrame(polys_in_0,data=idxyd)
 
     }
+
 
     #fix row names
     row.names(plot_polys_in)=as.character(plot_polys_in@data[,id_field_plots])
@@ -115,17 +113,18 @@ clip_plots=function(
     print("intersect plots and tiles");print(Sys.time())
 
     #parse intersections and compile data
-    plots_tiles=rbind.fill(mapply(function(x,y,plots,tiles){data.frame(plots[as.character(x),,drop=F],tiles[y,,drop=F],row.names=NULL)},names(proj_plot_x1),proj_plot_x1,SIMPLIFY = F, MoreArgs = list(plots=plot_polys_spdf@data,tiles=proj_polys_spdf@data)))
+    plots_tiles=rbind.fill(mapply(function(x,y,plots,tiles){data.frame(plots[as.character(x),],tiles[y,],row.names=NULL)},names(proj_plot_x1),proj_plot_x1,SIMPLIFY = F, MoreArgs = list(plots=plot_polys_spdf@data,tiles=proj_polys_spdf@data)))
 
     #merge duplicate records
-    dup_id=.dup2(plots_tiles$plot)
-    dups=plots_tiles[dup_id,,drop=F]
-    no_dups_df=plots_tiles[!dup_id,,drop=F]
-    spl_dups=split(dups,dups$plot)
+    dup_id=.dup2(as.character(plots_tiles$plot))
+    dups=plots_tiles[dup_id,]
+    no_dups_df=plots_tiles[!dup_id,]
+    spl_dups=split(dups,as.character(dups$plot))
     dups_df=.fn_merge(spl_dups)
     plots_tiles_unq=rbind(no_dups_df,dups_df)
+
     row.names(plots_tiles_unq)=as.character(plots_tiles_unq[,id_field_plots])
-browser()
+
     print("merge duplicates");print(Sys.time())
 
     #add records to geometry
@@ -164,7 +163,7 @@ browser()
 
   #clip points
   spl_plots=sp::split(plot_polys_merge,1:nrow(plot_polys_merge))
-
+browser()
   if(n_core>1){
     clus=makeCluster(n_core)
     clusterEvalQ(clus,library(lasR))
@@ -202,7 +201,7 @@ browser()
   if(class(x)=="list") x_in=data.frame(rbindlist(lapply(x,.fn_merge)))
   else{
     x_in=x[1,]
-    x_in[,"tile_id"]=paste(x[,"tile_id"],collapse=",")
+    x_in[,"tile_id"]=paste(as.character(x[,"tile_id"]),collapse=",")
     x_in[,"las_file"]=paste(unique(strsplit(paste(x[,"las_file"],collapse=","),",")[[1]]),collapse=",")
     x_in[,"dtm_file"]=paste(unique(strsplit(paste(x[,"dtm_file"],collapse=","),",")[[1]]),collapse=",")
     if("x.1" %in% names(x_in)) x_in[,"x.1"]=paste(x[,"x.1"],collapse=",")
@@ -294,28 +293,4 @@ browser()
   try(.clip_plots(...))
 
 }
-#
-# .clip_plots=function(x,dir_out,return=F){
-#
-#   require(lidR)
-#   require(lasR)
-#
-#   #browser()
-#
-#   poly_coords=x@polygons[[1]]@Polygons[[1]]@coords
-#
-#   las_in=readLAS(files=unlist(strsplit(x@data[,"las_file"],",")[1]))
-#   dtm_in=read_dtm(unlist(strsplit(x@data[,"dtm_file"],",")[1]))
-#   dtm_poly=try(crop(dtm_in,x))
-#   if(class(dtm_poly)=="try-error"){warning("plot and dem do not intersect, plot: ",x@data[,1]);return()}
-#   las_poly=lasclip(las_in, "polygon", poly_coords , inside = TRUE)
-#   las_hts=lasnormalize(las_poly, dtm = dtm_poly)
-#
-#
-#   #write to file
-#   if(!dir.exists(dir_out))dir.create(dir_out)
-#   out_file_i=file.path(dir_out,paste(names(x)[1],"_",x@data[,1],".las",sep=""))
-#   writeLAS(las_hts,out_file_i)
-#
-# }
 

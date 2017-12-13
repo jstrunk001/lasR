@@ -100,7 +100,6 @@ lasR_project=function(
   #create sqlite database / tables
 
   #inventory las and dtms
-
   if(scan_las) scan_las(project=project_las, project_year=las_year,dir_las=dir_las)
   if(scan_dtms) scan_dtm(project=project_dtm, project_year=dtm_year,dir_dtm=dir_dtm)
 
@@ -115,7 +114,6 @@ lasR_project=function(
   #buffer polygons
   dtm_polys1=buffer(dtm_polys,pixel_size*2+1,dissolve=F);gc()
   las_polys1=buffer(las_polys,pixel_size*2+1,dissolve=F);gc()
-
 print("buffer");print(Sys.time())
   #create processing tiles
   proc_rast=raster(xmn=xmn,xmx=xmx,ymn=ymn,ymx=ymx,resolution=tile_size,crs=crs);gc()
@@ -139,19 +137,18 @@ print("mask");print(Sys.time())
 
   #intersect tiles with polygons
   ex_dtm=extract(proc_rast1,dtm_polys1);gc()
-  if("file_path" %in% names(dtm_polys1)) names(ex_dtm)=dtm_polys1$file_path
-  if("fil_pth" %in% names(dtm_polys1)) names(ex_dtm)=dtm_polys1$fil_pth
+  names(ex_dtm)=dtm_polys1$file_path
   ex_dtm1=lapply(ex_dtm[sapply(ex_dtm,length)>0],unique);gc()
 
 print("extract dtm polygons");print(Sys.time())
   ex_las=extract(proc_rast1,las_polys1);gc()
-  if("fil_pth" %in% names(las_polys1)) names(ex_las)=las_polys1$fil_pth
-  if("file_path" %in% names(las_polys1)) names(ex_las)=las_polys1$file_path
+  names(ex_las)=las_polys1$file_path
   ex_las1=lapply(ex_las[sapply(ex_las,length)>0],unique);gc()
 
 print("extract las polygons");print(Sys.time())
+
   #create dataframe from dtm and las intersections on tiles
-  tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F),fill=T))
+  tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
   #sum(duplicated(tiles_las_df[,"las_file"]))
 print("create dataframe from dtm and las intersections on tiles A");print(Sys.time())
   tiles_dtm_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,dtm_file=file,stringsAsFactors=F)},ex_dtm1,names(ex_dtm1),SIMPLIFY=F)))
@@ -181,11 +178,11 @@ print("Merge");print(Sys.time())
   #write project to file
   #write polygons
   n_err=0
-  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile",overwrite_layer=TRUE))
+  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"))
 
   if(class(write_test)=="try-error"){
-    n_err=length(list.files(project_path,"lasR_project.*shp"))
-    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile",overwrite_layer=TRUE))
+    n_err=list.files(project_path,"lasR_project.*shp")
+    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"))
   }
   if(class(write_test)=="try-error") warning("Error trying to write lasR_project geometry",write_test)
 

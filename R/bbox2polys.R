@@ -35,9 +35,6 @@
 #'@export
 bbox2polys=function(idxxyy){
 
-  #set NA values to zero
-  idxxyy[,2:5][is.na(idxxyy[,2:5])]=0
-
   idxy_in=plyr::rbind.fill(
     apply(idxxyy,1,function(x) data.frame(id=x[1]
                                           ,x=as.numeric(x[c(2,2,3,3,2)])
@@ -45,8 +42,6 @@ bbox2polys=function(idxxyy){
                                           ,row.names=NULL,stringsAsFactors=F)
           )
   )
-
-
 
   points2polys(idxy_in)
 

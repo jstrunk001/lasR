@@ -75,8 +75,6 @@ run_gridmetrics=function(
 
   if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(as.character(proj_polys@data[,"dtm_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
   if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(as.character(proj_polys@data[,"las_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las))
-#browser()
-
 
   #skip existing files
   if(skip_existing){
@@ -215,7 +213,6 @@ if(F){
     ,dir_dtm="C:\\data\\FUSION_DTMS\\" #in case drive paths are wrong (External drives...)
     ,dir_las="G:\\data\\2015_naip_phodar\\" #in case drive paths are wrong (External drives...)
     ,elev_metrics=F
-    ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Aug19_141611\\all_commands.txt"
   )
 
 }

@@ -72,32 +72,13 @@ read_header.character=function(paths){
 }
 
 .read_headers=function(paths){
-  require(data.table)
 
-  require(plyr)
+  headers=data.frame(do.call(rbind,lapply(paths,function(x)t(.read_one_header(x)))),row.names=NULL)
 
-  x=lapply(paths,.try_read_one_header)
-
-  #dummy replacement for bad hears
-  cli=sapply(x,class)
-  dummy=data.frame( row.names = c('signature', 'Source_ID'), value=c("error",""))
-  x[cli=="NULL"]=dummy
-
-  #combine headers
-  headers_df=data.frame(rbindlist(lapply(x,function(x)data.frame(t(x))),fill=T))
-
-  # headers_df=data.frame(rbind.fill(lapply(paths,function(x)headers,row.names=NULL)
-  return(headers_df)
-}
-
-.try_read_one_header=function(path){
-
-  x=try(.read_one_header(path))
-  if(class(x)=="try-error") NULL
-  else x
 }
 
 .read_one_header=function(path){
+
 
   con <- file(path, open = 'rb')
   rBcon <- readBin(con, 'raw', n = 96, size = 1)
@@ -135,21 +116,11 @@ read_header.character=function(paths){
       readBin(rBcon[95:96], 'int', size = 2, n = 1, signed = FALSE)),
     stringsAsFactors = FALSE
   )
-
-  rBcon2=try( readBin(con, 'raw', n = as.numeric(PHB1['Header_Size', ]) - 96, size = 1))
-  close(con)
-
-  if(class(rBcon2)== "try-error"){
-
-    PHB1[signature,paste(path," is corrupt")]
-    warning(paste(path," is corrupt"))
-    return(PHB1)
-  }
-
   rBcon <- c(
     rBcon,
-    rBcon2
+    readBin(con, 'raw', n = as.numeric(PHB1['Header_Size', ]) - 96, size = 1)
   )
+  close(con)
 
   PHB2<- data.frame(
     row.names = c(
@@ -205,7 +176,6 @@ read_header.character=function(paths){
 
   phb <- rbind(PHB1, PHB2)
   rm(PHB1, PHB2)
-  gc()
 
   isLASF <- phb[1, 1] == 'LASF'
 
@@ -295,7 +265,7 @@ read_header.character=function(paths){
 
   phb[9, 1] <- ifelse(phb[9, 1] == '\001', 1, phb[9, 1])
   phb[9, 1] <- ifelse(phb[9, 1] == '\002', 2, phb[9, 1])
-  if (!isLASF) { warning(path, ' is not a valid LAS file') }
+  if (!isLASF) {close(con); stop(path, ' is not a valid LAS file') }
 
   return(phb)
 
