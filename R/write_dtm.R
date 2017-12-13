@@ -43,7 +43,7 @@ write_dtm=function(
   ,NA_val=-1
 ){
 
-    require(raster)
+    library(raster)
     library(Thermimage)
 
     if(!class(dtm)=="RasterLayer") dtm=raster(dtm)
@@ -93,9 +93,9 @@ write_dtm=function(
 
     #write data
     dtm_size=c(2,4,4,8)[zfmt+1]
-    # vec_dtm=as.vector(flip.matrix(as.matrix(dtm)))
-    # vec_dtm[is.na(vec_dtm)] = NA_val
-    # writeBin(vec_dtm,con, size = dtm_size)
+    vec_dtm=as.vector(flip.matrix(raster::as.matrix(dtm)))
+    vec_dtm[is.na(vec_dtm)] = NA_val
+    writeBin(vec_dtm,con, size = dtm_size)
 
     close(con)
 
