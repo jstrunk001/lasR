@@ -20,6 +20,9 @@ run_gridmetrics=function(
   ,fun=compute_metrics2#list(min=min,max=max,mean=mean,sd=sd)#,p20=function(x,...)quantile(x,.2,...),p75=function(x,...)quantile(x,.2,...),p95=function(x,...)quantile(x,.2,...))
   ,temp="c:\\temp\\run_gridmetrics\\"
 
+  ,fast_cache=NA #preferrably a ram or ssd drive with good parallel read behavior
+  ,n_cache=90
+
   ,dir_dtm=NA #in case drive paths are wrong (External drives...)
   ,dir_las=NA #in case drive paths are wrong (External drives...)
 
@@ -50,8 +53,8 @@ run_gridmetrics=function(
   if(!dir.exists(gm_out)) try(dir.create(gm_out,recursive=T))
 
   #create csv folder dump
-  if(is.na(existing_coms)) temp = backslash(paste(temp,"/",proc_time,"/",sep=""))
-  if(!is.na(existing_coms)) temp = paste(dirname(existing_coms),"/",sep="")
+  if(is.na(existing_coms[1])) temp = backslash(paste(temp,"/",proc_time,"/",sep=""))
+  if(!is.na(existing_coms[1])) temp = paste(dirname(existing_coms[1]),"/",sep="")
   if(!dir.exists(temp)) try(dir.create(temp,recursive=T))
 
   coms_out=file.path(temp,"all_commands.txt")
@@ -73,15 +76,17 @@ run_gridmetrics=function(
   print("load lasR_project");print(Sys.time())
   #fix drive paths in lasR_project
 
-  if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=unlist(lapply(as.character(proj_polys@data[,"dtm_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
-  if(!is.na(dir_las)) proj_polys@data[,"las_file"]=unlist(lapply(as.character(proj_polys@data[,"las_file"]),function(...,dir_las)paste(file.path(dir_las,basename(strsplit(...,",")[[1]])),collapse=","),dir_las=dir_las))
+  if(!is.na(dir_dtm)) proj_polys@data[,"dtm_file"]=backslash(unlist(lapply(as.character(proj_polys@data[,"dtm_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm)))
+  if(!is.na(dir_las)) proj_polys@data[,"las_file"]=backslash(unlist(lapply(as.character(proj_polys@data[,"las_file"]),function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_las)))
 
   #skip existing files
   if(skip_existing){
+
     files_done=list.files(gm_out,pattern="[.]csv")
     ids_done=gsub("_.*","",files_done)
     files_exist=as.character(proj_polys@data[,"tile_id"]) %in% ids_done
     proj_polys=subset(proj_polys,subset=!files_exist)
+
   }
   print("skip files");print(Sys.time())
 
@@ -102,6 +107,13 @@ run_gridmetrics=function(
                               ,sep="")
 
 
+    if(!is.na(fast_cache)){
+
+      proj_polys@data[,"las_file_org"] = proj_polys@data[,"las_file"]
+      proj_polys@data[,"las_file"]=forwardslash(sapply(proj_polys@data[,"las_file_org"],function(x,y) paste(file.path(y,basename(unlist(strsplit(x,",")))),collapse=","),fast_cache))
+
+    }
+
     if(!is.null(fusion_switches)) coms_df=data.frame(paste(gridmetrics_type[1],fusion_switches),proj_polys@data[,c("switches","dtm_txt")],heightbreak,cellsize,proj_polys@data[,"outf"],proj_polys@data[,"las_txt"])
     if(is.null(fusion_switches)) coms_df=data.frame(gridmetrics_type[1],proj_polys@data[,c("switches","dtm_txt")],heightbreak,cellsize,proj_polys@data[,"outf"],proj_polys@data[,"las_txt"])
 
@@ -120,11 +132,40 @@ run_gridmetrics=function(
       print("create list of dtms and las files");print(Sys.time())
     }
 
-    if(n_core>1){
+    if(n_core>1 & is.na(fast_cache)){
 
       clus=makeCluster(n_core)
       clusterEvalQ(clus,{library(lasR);gc()})
       res=parLapply(clus,coms,shell);gc()
+      gc();stopCluster(clus);gc()
+
+    }else if(n_core>1 & !is.na(fast_cache)){
+
+      #set up clusters
+      clus=makeCluster(n_core)
+      clusterEvalQ(clus,{library(lasR);gc()})
+
+      #figure out number of clumps to make
+      n_clumps=ceiling(length(coms)/n_cache)
+      clumps=cut(1:nrow(proj_polys@data),n_clumps,labels=F)
+
+      #iterate through files in clumps
+      for(i in 1:n_clumps){
+
+        this_clump = clumps==i
+
+        #copy to fast cache
+        files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
+        files_to=file.path(fast_cache,basename(files_from))
+        file.copy(files_from, files_to)
+
+        #run clump of commands
+        res=parLapply(clus,coms[this_clump],shell);gc()
+
+        #delete temporary files
+        unlink(files_to)
+
+      }
       gc();stopCluster(clus);gc()
 
     }else{
@@ -201,18 +242,21 @@ do_shell=function(comi,idi,tab_out,emptyi,lock.name){
 }
 
 
-if(F){
+if(T){
 
-  library(lasR)
+  if(F) library(lasR)
 
   gmi=run_gridmetrics(
-    lasR_project_polys="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_5cnty_lasR\\lasR_project001.shp"
-    ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\"
-    ,gridmetrics=c("lasR")
-    ,n_core=1
-    ,dir_dtm="C:\\data\\FUSION_DTMS\\" #in case drive paths are wrong (External drives...)
-    ,dir_las="G:\\data\\2015_naip_phodar\\" #in case drive paths are wrong (External drives...)
-    ,elev_metrics=F
+    lasR_project_poly="D:\\projects\\2017_WA_DSM_Pilot_usgs\\2017Aug_NAIP_usgs\\lasR_project001.shp"
+    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_01\\"
+    ,dir_dtm="r:\\usgs_dtms\\dtm_tiles"
+    ,dir_las="D:\\naip_2015_laz\\"
+    ,n_core=20
+    ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec15_130319\\all_commands.txt"
+    ,fast_cache="r:\\temp"
+    ,n_cache=200
   )
 
+
 }
+

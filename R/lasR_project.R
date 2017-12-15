@@ -147,7 +147,7 @@ print("extract dtm polygons");print(Sys.time())
   ex_las1=lapply(ex_las[sapply(ex_las,length)>0],unique);gc()
 
 print("extract las polygons");print(Sys.time())
-  browser()
+
   #create dataframe from dtm and las intersections on tiles
   tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
   #sum(duplicated(tiles_las_df[,"las_file"]))
