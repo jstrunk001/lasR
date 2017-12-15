@@ -242,7 +242,7 @@ do_shell=function(comi,idi,tab_out,emptyi,lock.name){
 }
 
 
-if(T){
+if(F){
 
   if(F) library(lasR)
 
