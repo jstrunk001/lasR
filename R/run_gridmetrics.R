@@ -251,10 +251,10 @@ if(F){
     ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_01\\"
     ,dir_dtm="r:\\usgs_dtms\\dtm_tiles"
     ,dir_las="D:\\naip_2015_laz\\"
-    ,n_core=20
-    ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec15_130319\\all_commands.txt"
+    ,n_core=15
+    #,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec15_130319\\all_commands.txt"
     ,fast_cache="r:\\temp"
-    ,n_cache=200
+    ,n_cache=1000
   )
 
 

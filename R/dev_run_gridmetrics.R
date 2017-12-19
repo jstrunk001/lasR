@@ -1,5 +1,5 @@
 
-run_gridmetrics=function(
+run_gridmetrics2=function(
 
   lasR_project=NA
   ,lasR_project_polys=NA
@@ -149,20 +149,65 @@ run_gridmetrics=function(
       n_clumps=ceiling(length(coms)/n_cache)
       clumps=cut(1:nrow(proj_polys@data),n_clumps,labels=F)
 
+      fn_copy_shell=function(x){
+        if(class(x)=="data.frame") file.copy(x[,1],x[,2])
+        else shell(x)
+      }
+
       #iterate through files in clumps
       for(i in 1:n_clumps){
 
         this_clump = clumps==i
+        next_clump = clumps==i+1
 
-        #copy to fast cache
-        files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
-        files_to=file.path(fast_cache,basename(files_from))
-        file.copy(files_from, files_to)
+      #copy to fast cache
+        if(i == 1 & n_clumps ==1){
+
+          #copy for this iteration
+          files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
+          files_to=file.path(fast_cache,basename(files_from))
+          file.copy(files_from,files_to)
+
+          veci=coms[this_clump]
+
+        }
+
+        if(i == 1 & n_clumps >1){
+browser()
+          #copy for this iteration
+          files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
+          files_to=file.path(fast_cache,basename(files_from))
+          file.copy(files_from,files_to)
+
+          #asynchronous copy for next iteration
+          files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[next_clump],",")))
+          files_to=file.path(fast_cache,basename(files_from))
+
+          veci=as.list(c(NULL,coms[this_clump]))
+          veci[[1]]=data.frame(files_from,files_to)
+
+        }
+        if(i >1 & i < n_clumps){
+
+          #asynchronous copy for next iteration
+          files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[next_clump],",")))
+          files_to=file.path(fast_cache,basename(files_from))
+          veci=as.list(c(NULL,coms[this_clump]))
+          veci[[1]]=data.frame(files_from,files_to)
+
+        }
+        if(i > 1 & i==n_clumps){
+
+          veci=coms[this_clump]
+
+        }
 
         #run clump of commands
-        res=parLapply(clus,coms[this_clump],shell);gc()
+        res=parLapply( clus ,veci, fn_copy_shell) ; gc()
 
-        #delete temporary files
+        #delete temporary files - this clump
+        files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
+        files_to=file.path(fast_cache,basename(files_from))
         unlink(files_to)
 
       }
@@ -252,9 +297,9 @@ if(F){
     ,dir_dtm="r:\\usgs_dtms\\dtm_tiles"
     ,dir_las="D:\\naip_2015_laz\\"
     ,n_core=20
-    ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec15_130319\\all_commands.txt"
+    #,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec15_142034\\all_commands.txt"
     ,fast_cache="r:\\temp"
-    ,n_cache=200
+    ,n_cache=1000
   )
 
 
