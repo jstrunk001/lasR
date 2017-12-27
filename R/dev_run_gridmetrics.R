@@ -298,7 +298,7 @@ if(F){
     ,dir_las="D:\\naip_2015_laz\\"
     ,n_core=20
     #,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec15_142034\\all_commands.txt"
-    ,fast_cache="r:\\temp"
+    #,fast_cache="r:\\temp"
     ,n_cache=1000
   )
 
