@@ -110,6 +110,7 @@ write_dtm=function(
   }
 
 
+<<<<<<< HEAD
 
 # if(F){
 #
@@ -130,3 +131,24 @@ write_dtm=function(
 #
 # }
 
+=======
+if(F){
+
+
+  dtm1=read_dtm("C:\\Temp\\47_62.dtm")
+  hd1=read_dtm_header("C:\\Temp\\47_62.dtm")
+  write_dtm(dtm=dtm1,dir_out="c:\\temp\\47_62_b.dtm",zfmt=3)
+  write_dtm(dtm=dtm1,dir_out="c:\\temp\\47_62_b.dtm",zfmt=0)
+
+  dtm2=read_dtm("C:\\Temp\\47_62_b.dtm")
+
+
+  hd2=read_dtm_header("C:\\Temp\\47_62_b.dtm")
+  eqs = dtm1[]==dtm2[]
+  sum(is.na(dtm1[]))
+  sum(is.na(dtm2[]))
+  eqs[is.na()]
+  boxplot(eqs)
+
+}
+>>>>>>> 3fc886ba49e3235c9b6cce513a4089f6f52df50a
