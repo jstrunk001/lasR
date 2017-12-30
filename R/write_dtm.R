@@ -103,17 +103,21 @@ write_dtm=function(
   }
 
 
-# if(F){
-#
-#
-#   dtm1=read_dtm("C:\\Temp\\36_63.dtm")
-#   write_dtm(dtm=dtm1,dir_out="c:\\temp\\36_63_b.dtm")
-#
-#
-#   read_dtm_header("C:\\Temp\\36_63.dtm")
-#   read_dtm_header("C:\\Temp\\36_63_b.dtm")
-#
-#   rtest=read_dtm("C:\\Temp\\36_63_b.dtm")
-#   plot(rtest)
-#
-# }
+if(F){
+
+
+  dtm1=read_dtm("C:\\Temp\\47_62.dtm")
+  hd1=read_dtm_header("C:\\Temp\\47_62.dtm")
+  write_dtm(dtm=dtm1,dir_out="c:\\temp\\47_62_b.dtm")
+  dtm2=read_dtm("C:\\Temp\\47_62_b.dtm")
+  hd2=read_dtm_header("C:\\Temp\\47_62_b.dtm")
+  eqs=dtm1[]==dtm2[]
+
+
+  read_dtm_header("C:\\Temp\\36_63.dtm")
+  read_dtm_header("C:\\Temp\\36_63_b.dtm")
+
+  rtest=read_dtm("C:\\Temp\\36_63_b.dtm")
+  plot(rtest)
+
+}

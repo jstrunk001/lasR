@@ -293,8 +293,8 @@ if(F){
 
   gmi=run_gridmetrics(
     lasR_project_poly="D:\\projects\\2017_WA_DSM_Pilot_usgs\\2017Aug_NAIP_usgs\\lasR_project001.shp"
-    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_01\\"
-    ,dir_dtm="r:\\usgs_dtms\\dtm_tiles"
+    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_02\\"
+    ,dir_dtm="c:\\usgs_dtms\\dtm_tiles"
     ,dir_las="D:\\naip_2015_laz\\"
     ,n_core=20
     #,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec15_142034\\all_commands.txt"
