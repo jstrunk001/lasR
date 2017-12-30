@@ -114,6 +114,11 @@ read_dtm=function(
     )
     close(con)
 
+    if(header_in[1,"z_format"] == 0 ) dataType(r_grid) = "INT2U"
+    if(header_in[1,"z_format"] == 1 ) dataType(r_grid) = "INT4S"
+    if(header_in[1,"z_format"] == 2 ) dataType(r_grid) = "FLT4S"
+    if(header_in[1,"z_format"] == 3 ) dataType(r_grid) = "FLT8S"
+
     #assign NA values
     r_grid[r_grid==NA_val]=NA
 
