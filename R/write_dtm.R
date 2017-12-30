@@ -40,7 +40,8 @@
 write_dtm=function(
   dtm
   ,dir_out=NULL
-  ,NA_val=-1
+  ,NA_val=as.integer(-1)
+  ,zfmt=NA
 ){
 
     library(raster)
@@ -60,7 +61,7 @@ write_dtm=function(
       ,FLT4S = 2
       ,FLT8S = 3
     )
-    zfmt=type_cw[dtm@file@datanotation]
+    if(is.na(zfmt)) zfmt = type_cw[dtm@file@datanotation]
 
     #prepare header data
 
@@ -92,10 +93,16 @@ write_dtm=function(
     writeBin(header,con)
 
     #write data
-    dtm_size=c(2,4,4,8)[zfmt+1]
-    vec_dtm=as.vector(flip.matrix(raster::as.matrix(dtm)))
-    vec_dtm[is.na(vec_dtm)] = NA_val
-    writeBin(vec_dtm,con, size = dtm_size)
+      #get data size as a function of input formats - fusion only has a limted number of formats
+      dtm_size=c(2,4,4,8)[zfmt+1]
+      #flip data vertically
+      vec_dtm=as.vector(flip.matrix(raster::as.matrix(dtm)))
+      #assign NA
+      vec_dtm[is.na(vec_dtm)] = NA_val
+      #cast data to integer if necessary
+      if(zfmt < 2) vec_dtm = as.integer(vec_dtm)
+      else vec_dtm = as.double(vec_dtm)
+      writeBin(vec_dtm,con, size = dtm_size)
 
     close(con)
 
@@ -106,14 +113,16 @@ write_dtm=function(
 # if(F){
 #
 #
-#   dtm1=read_dtm("C:\\Temp\\36_63.dtm")
-#   write_dtm(dtm=dtm1,dir_out="c:\\temp\\36_63_b.dtm")
+#   dtm1=read_dtm("C:\\Temp\\47_62.dtm")
+#   hd1=read_dtm_header("C:\\Temp\\47_62.dtm")
+#   write_dtm(dtm=dtm1,dir_out="c:\\temp\\47_62_b.dtm",zfmt=3)
 #
-#
-#   read_dtm_header("C:\\Temp\\36_63.dtm")
-#   read_dtm_header("C:\\Temp\\36_63_b.dtm")
-#
-#   rtest=read_dtm("C:\\Temp\\36_63_b.dtm")
-#   plot(rtest)
+#   dtm2=read_dtm("C:\\Temp\\47_62_b.dtm")
+#   hd2=read_dtm_header("C:\\Temp\\47_62_b.dtm")
+#   eqs = dtm1[]==dtm2[]
+#   sum(is.na(dtm1[]))
+#   sum(is.na(dtm2[]))
+#   eqs[is.na()]
+#   boxplot(eqs)
 #
 # }
