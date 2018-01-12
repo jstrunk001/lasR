@@ -71,8 +71,8 @@ scan_las=function(
 
   if(exist_project_id_csv){
 
-    project_id_df=read.csv(project_id_csv)
-    las_id_df = read.csv(las_id_csv)
+    project_id_df=read.csv(project_id_csv,stringsAsFactors = F)
+    las_id_df = read.csv(las_id_csv,stringsAsFactors = F)
 
   }else{
 
@@ -123,18 +123,21 @@ scan_las=function(
     headers[,"file_path"]=files_las
     headers[,"load_date"]=proc_date
     headers[,"notes"]=notes
-    las_id_df=rbind(headers,las_id_df)
-    write.csv(las_id_df,las_id_csv)
+browser()
+    las_id_df=rbind(headers,las_id_df[,names(headers)])
+    write.csv(las_id_df,las_id_csv,row.names=F)
 
   }
 
 
   if(create_polys){
 
-    las_id_df=read.csv(las_id_csv,stringsAsFactors =F)
+    las_id_df=read.csv(las_id_csv , stringsAsFactors =F)
 
     polys_rds=paste(project_id_folder,"las_polys.rds",sep="")
     polys_shp=paste(project_id_folder,"las_polys.shp",sep="")
+
+    las_id_df[,c("las_id","min_x","max_x","min_y","max_y")][is.na(las_id_df[,c("las_id","min_x","max_x","min_y","max_y")])]=0
 
     las_polys=bbox2polys(las_id_df[,c("las_id","min_x","max_x","min_y","max_y")])
     row.names(las_id_df)=las_id_df[,"las_id"]

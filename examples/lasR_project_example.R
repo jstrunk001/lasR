@@ -36,6 +36,22 @@ if(F){
 }
 if(F){
 
+  library(lasR)
+
+  scan_las(
+
+    project="2015_naip"
+    ,project_year=2015
+    ,dir_las ="D:\\naip_2015_laz"
+    #,dir_las ="D:\\test"
+
+    )
+
+
+}
+
+if(F){
+
   #library(rgdal)
   #library(lasR)
 
@@ -43,7 +59,7 @@ if(F){
 
   lasR_project(
     dir_las="D:\\naip_2015_laz"
-    ,dir_dtm="D:\\usgs_dtms\\dtm_tiles"
+    ,dir_dtm="D:\\usgs_dtms\\dtms"
     ,dir_project="d:\\projects\\2017_WA_DSM_Pilot_usgs\\"
     ,project="2017Aug_NAIP_usgs"
     ,project_dtm="usgs"
@@ -70,7 +86,7 @@ if(F){
 
   gmi=run_gridmetrics(
     lasR_project_poly="D:\\projects\\2017_WA_DSM_Pilot_usgs\\2017Aug_NAIP_usgs\\lasR_project001.shp"
-    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_02\\"
+    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_03\\"
     ,dir_dtm="c:\\usgs_dtms\\dtm_tiles\\"
     ,dir_las="D:\\naip_2015_laz\\"
     ,n_core=12

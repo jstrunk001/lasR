@@ -30,7 +30,7 @@
 #'
 #'@import tools, sp
 #'
-#export
+#'@export
 #
 #'@seealso \code{\link{read_dtm}}\cr \code{\link{gridmetrics}}\cr
 
@@ -334,5 +334,9 @@ read_header.character=function(paths){
 
 }
 
+if(F){
+  read_las("D:\\test\\184_348.laz")
+  read_header("D:\\naip_2015_laz\\367_128.laz")
+}
 
 

@@ -179,14 +179,16 @@ print("Merge");print(Sys.time())
   #write project to file
   #write polygons
   n_err=0
-  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"))
+  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent=T)
 
   if(class(write_test)=="try-error"){
-    n_err=list.files(project_path,"lasR_project.*shp")
-    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"))
+    n_err=length(list.files(project_path,"lasR_project.*shp"))
+    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent = T)
   }
-  if(class(write_test)=="try-error") warning("Error trying to write lasR_project geometry",write_test)
-
+  if(class(write_test)=="try-error"){
+    warning("Error trying to write lasR_project geometry",write_test)
+    browser()
+  }
   #write project to file
   #write csv
   out_csv=file.path(project_path,sprintf("lasR_project%03d.csv", n_err+1))

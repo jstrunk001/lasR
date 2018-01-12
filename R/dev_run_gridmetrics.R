@@ -37,6 +37,8 @@ run_gridmetrics2=function(
 
   ){
 
+  options(scipen = 999)
+
   require("parallel")
   require("raster")
   require("rgdal")
@@ -114,11 +116,18 @@ run_gridmetrics2=function(
 
     }
 
-    if(!is.null(fusion_switches)) coms_df=data.frame(paste(gridmetrics_type[1],fusion_switches),proj_polys@data[,c("switches","dtm_txt")],heightbreak,cellsize,proj_polys@data[,"outf"],proj_polys@data[,"las_txt"])
-    if(is.null(fusion_switches)) coms_df=data.frame(gridmetrics_type[1],proj_polys@data[,c("switches","dtm_txt")],heightbreak,cellsize,proj_polys@data[,"outf"],proj_polys@data[,"las_txt"])
+    if(!is.null(fusion_switches))
+      coms_df=data.frame(gm=paste(gridmetrics_type[1],fusion_switches)
+                         ,sw=proj_polys@data[,c("switches")]
+                         ,dtms=forwardslash(proj_polys@data[,c("dtm_txt")])
+                         ,hb=heightbreak
+                         ,cs=cellsize
+                         ,outf=proj_polys@data[,"outf"]
+                         ,las=proj_polys@data[,"las_txt"]
+                         )
+    if(is.null(fusion_switches))  coms_df=data.frame(gridmetrics_type[1],proj_polys@data[,c("switches","dtm_txt")],heightbreak,cellsize,proj_polys@data[,"outf"],proj_polys@data[,"las_txt"])
 
     coms=apply(coms_df,1,paste,collapse=" ")
-
     print("set up commands");print(Sys.time())
 
     if(is.na(existing_coms[1]) ){
@@ -149,11 +158,6 @@ run_gridmetrics2=function(
       n_clumps=ceiling(length(coms)/n_cache)
       clumps=cut(1:nrow(proj_polys@data),n_clumps,labels=F)
 
-      fn_copy_shell=function(x){
-        if(class(x)=="data.frame") file.copy(x[,1],x[,2])
-        else shell(x)
-      }
-
       #iterate through files in clumps
       for(i in 1:n_clumps){
 
@@ -173,18 +177,24 @@ run_gridmetrics2=function(
         }
 
         if(i == 1 & n_clumps >1){
-browser()
+
           #copy for this iteration
           files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
           files_to=file.path(fast_cache,basename(files_from))
-          file.copy(files_from,files_to)
+          copy_status=mapply(file.copy,files_from,files_to) #otherwise partial copies left with 0kb
+
+          if( sum( !copy_status ) > 0 ){
+            #bad_copy=!file.exists(files_to) #better than !copy_status ?
+            bad_copy=!copy_status
+            copy_status1=mapply(file.copy,files_from[bad_copy],files_to[bad_copy])
+          }
 
           #asynchronous copy for next iteration
           files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[next_clump],",")))
           files_to=file.path(fast_cache,basename(files_from))
 
-          veci=as.list(c(NULL,coms[this_clump]))
-          veci[[1]]=data.frame(files_from,files_to)
+          veci=as.list(c(NA,coms[this_clump]))
+          veci[[1]]=data.frame(files_from,files_to,stringsAsFactors = F )
 
         }
         if(i >1 & i < n_clumps){
@@ -192,8 +202,8 @@ browser()
           #asynchronous copy for next iteration
           files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[next_clump],",")))
           files_to=file.path(fast_cache,basename(files_from))
-          veci=as.list(c(NULL,coms[this_clump]))
-          veci[[1]]=data.frame(files_from,files_to)
+          veci=as.list(c(NA,coms[this_clump]))
+          veci[[1]]=data.frame(files_from,files_to,stringsAsFactors = F)
 
         }
         if(i > 1 & i==n_clumps){
@@ -202,8 +212,14 @@ browser()
 
         }
 
+        #browser()
+
         #run clump of commands
-        res=parLapply( clus ,veci, fn_copy_shell) ; gc()
+        # res=parLapply( clus ,veci[121:140], .fn_copy_shell) ; gc()
+        # res=lapply(veci[c(50:70)], .fn_copy_shell) ; gc()
+        # .fn_copy_shell(veci[c(199)])
+
+        res=parLapply( clus ,veci, .fn_copy_shell) ; gc()
 
         #delete temporary files - this clump
         files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
@@ -263,7 +279,12 @@ browser()
 
 }
 
-do_shell=function(comi,idi,tab_out,emptyi,lock.name){
+.fn_copy_shell=function(x){
+  if(class(x)=="data.frame") file.copy(x[,1],x[,2])
+  else return(shell(x))
+}
+
+.do_shell=function(comi,idi,tab_out,emptyi,lock.name){
 
   #test for completion status &
   #create an empty file to denote that processing has not completed, then unlink the empty file
@@ -287,21 +308,37 @@ do_shell=function(comi,idi,tab_out,emptyi,lock.name){
 }
 
 
-if(F){
+if(T){
 
-  if(F) library(lasR)
+  if(T) library(lasR)
 
-  gmi=run_gridmetrics(
+  gmi=run_gridmetrics2(
     lasR_project_poly="D:\\projects\\2017_WA_DSM_Pilot_usgs\\2017Aug_NAIP_usgs\\lasR_project001.shp"
-    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_02\\"
+    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_04\\"
     ,dir_dtm="c:\\usgs_dtms\\dtm_tiles"
     ,dir_las="D:\\naip_2015_laz\\"
     ,n_core=20
-    #,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec15_142034\\all_commands.txt"
-    #,fast_cache="r:\\temp"
-    ,n_cache=1000
+    #,existing_coms="C:\\Temp\\run_gridmetrics\\2018Jan02_172354\\all_commands.txt"
+    ,fast_cache="r:\\temp"
+    ,n_cache=400
   )
 
 
 }
 
+
+if(F){
+  tst = shell("c:\\fusion\\gridmetrics.exe /nointensity /first /minht:6 /outlier:-5,400 /cellbuffer:2 /gridxy:2319966,1349766,2323266,1353066 c:\\temp\\run_gridmetrics\\2018Jan02_152302\\41334_dtm.txt 6 66 I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_02\\gridmetrics_csv\\41334.csv c:\\temp\\run_gridmetrics\\2018Jan02_152302\\41334_las.txt", intern = T);print(tst)
+
+  tst = shell('c:\\fusion\\gridmetrics.exe c:\\temp\\run_gridmetrics\\2018Jan02_152302\\41334_dtm.txt 6 66 I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_02\\gridmetrics_csv\\41334.csv c:\\temp\\run_gridmetrics\\2018Jan02_152302\\41334_las.txt', intern = T);print(tst)
+
+  tst = shell("\"c:/fusion/gridmetrics.exe\" \"c:/temp/run_gridmetrics/2018Jan02_152302/41335_dtm.txt\" 6 66 \"I:/projects/2017_WA_DSM_Pilot/2017Aug_NAIP_usgs/gridmetrics_02/gridmetrics_csv/41335.csv\" \"c:/temp/run_gridmetrics/2018Jan02_152302/41335_las.txt\"", intern = T);print(tst)
+
+  tst = shell("\"c:/fusion/gridmetrics.exe\"", intern = T);print(tst)
+
+  writeClipboard("c:\\fusion\\gridmetrics.exe c:\\temp\\run_gridmetrics\\2018Jan02_152302\\41334_dtm.txt 6 66 I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_02\\gridmetrics_csv\\41334.csv c:\\temp\\run_gridmetrics\\2018Jan02_152302\\41334_las.txt")
+
+  x=readLines("C:\\Temp\\run_gridmetrics\\2018Jan02_172354\\all_commands.txt")
+  x1=x[grepl(297355,x)]
+
+    }
