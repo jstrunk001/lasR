@@ -308,7 +308,7 @@ run_gridmetrics2=function(
 }
 
 
-if(T){
+if(F){
 
   if(T) library(lasR)
 

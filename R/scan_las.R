@@ -123,7 +123,7 @@ scan_las=function(
     headers[,"file_path"]=files_las
     headers[,"load_date"]=proc_date
     headers[,"notes"]=notes
-browser()
+
     las_id_df=rbind(headers,las_id_df[,names(headers)])
     write.csv(las_id_df,las_id_csv,row.names=F)
 
