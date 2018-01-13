@@ -66,8 +66,8 @@ read_header=function(paths,...){
 read_header.character=function(paths){
 
   if(length(paths)==0) stop("'path' is empty")
-  if(length(paths)==1) return(.read_one_header(paths))
-  if(length(paths) >1) return(.read_headers(paths))
+  if(length(paths)==1) try(return(.read_one_header(paths)))
+  if(length(paths) >1) try(return(.read_headers(paths)))
 
 }
 
@@ -82,7 +82,7 @@ read_header.character=function(paths){
 
   con <- file(path, open = 'rb')
   rBcon <-readBin(con, 'raw', n = 227, size = 1, signed = F)
-  close(con)
+  try(close(con))
 
   phb <- data.frame(
     row.names = c(
@@ -184,7 +184,7 @@ read_header.character=function(paths){
   #laz files mess with format field
   phb['Format_ID', 1] <- ifelse(as.numeric(phb['Format_ID', 1]) > 127, as.numeric(phb['Format_ID', 1]) - 128, phb['Format_ID', 1])
 
-  if (!isLASF) {try(close(con)); stop(path, ' is not a valid LAS file') }
+  if (!isLASF) { warning(path, ' is not a valid LAS/LAZ file') }
 
   if(phb['V_Min',]=="") phb['V_Min',]=0
 
@@ -192,7 +192,7 @@ read_header.character=function(paths){
 
     con <- file(path, open = 'rb')
     rBcon <- readBin(con, 'raw', n = 375, size = 1)
-    close(con)
+    try(close(con))
 
     phb_add<- data.frame(
       row.names = c(
@@ -259,7 +259,7 @@ read_header.character=function(paths){
 
   phb[9, 1] <- ifelse(phb[9, 1] == '\001', 1, phb[9, 1])
   phb[9, 1] <- ifelse(phb[9, 1] == '\002', 2, phb[9, 1])
-  if (!isLASF) {close(con); stop(path, ' is not a valid LAS file') }
+  if (!isLASF) {try(close(con)); warning(path, ' is not a valid LAS file') }
 
   return(phb)
 
@@ -289,7 +289,7 @@ read_header.character=function(paths){
       con <- file(path, open = 'rb')
       seek(con, seek_to, rw = "read")
       dat_bin=readBin(con, "raw", n = nBytes, size = 1, endian = "little")
-      close(con)
+      try(close(con))
 
       if(length(dat_bin) !=nBytes ){
 
