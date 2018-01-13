@@ -53,7 +53,7 @@ if(F){
 if(F){
 
   #library(rgdal)
-  #library(lasR)
+  library(lasR)
 
  # proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_counties_WASP")
 
