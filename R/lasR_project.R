@@ -73,8 +73,8 @@ lasR_project=function(
   ,project_las="test_project"
   ,dtm_year="2099"
   ,las_year="2099"
-  ,scan_dtms=T
-  ,scan_las=T
+  ,do_scan_dtms=T
+  ,do_scan_las=T
   ,tile_size=1650
   ,pixel_size=66
   ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
@@ -100,8 +100,10 @@ lasR_project=function(
   #create sqlite database / tables
 
   #inventory las and dtms
-  if(scan_las) scan_las(project=project_las, project_year=las_year,dir_las=dir_las)
-  if(scan_dtms) scan_dtm(project=project_dtm, project_year=dtm_year,dir_dtm=dir_dtm)
+  if(do_scan_las) scan_las(project=project_las, project_year=las_year,dir_las=dir_las,create_polys=T)
+  print("scan_las");print(Sys.time())
+  if(do_scan_dtms) scan_dtm(project=project_dtm, project_year=dtm_year,dir_dtm=dir_dtm)
+  print("scan_dtm");print(Sys.time())
 
   #file names
   path_dtm_proj=paste(dir_dtm,"/manage_dtm",sep="")

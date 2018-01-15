@@ -72,11 +72,8 @@ scan_dtm=function(
   if(exist_project_id_csv){
 
     project_id_df=read.csv(project_id_csv)
-    dtm_id_df = read.csv(dtm_id_csv)
 
   }else{
-
-    dtm_id_df = data.frame()
 
     project_id_df=data.frame(
       project_id=UUIDgenerate(use.time = NA)
@@ -92,6 +89,15 @@ scan_dtm=function(
 
   }
 
+  if(exist_dtm_id_csv){
+
+    dtm_id_df = read.csv(dtm_id_csv,stringsAsFactors = F)
+
+  }else{
+
+    dtm_id_df = data.frame()
+
+  }
   proj_id=project_id_df[1,"project_id"]
 
   #write little disclaimer / meta file to folder e.g. what is this crap in this folder
@@ -128,7 +134,9 @@ scan_dtm=function(
     headers[,"max_x"]=headers[,"min_x"]+headers[,"n_cols"]*headers[,"col_spacing"]
     headers[,"max_y"]=headers[,"min_y"]+headers[,"n_rows"]*headers[,"row_spacing"]
 
-    dtm_id_df=rbind(headers,dtm_id_df)
+    if(nrow(dtm_id_df) > 0) dtm_id_df=rbind(headers,dtm_id_df[,names(headers)])
+    else dtm_id_df = headers
+
     write.csv(dtm_id_df,dtm_id_csv)
 
   }
