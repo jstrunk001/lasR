@@ -1,5 +1,58 @@
+#'@title
+#'  load csvs into database
+#'
+#'@description
+#'  point at a directory and load fusion derived tabular csv data into an sqlite database
+#'
+#'@details
+#'  <Delete and Replace>
+#'
+#'\cr
+#'Revision History
+#' \tabular{ll}{
+#'1.0 \tab 1/18/2018 header added \cr
+#'}
+#'
+#'@author
+#'
+#'Jacob Strunk <Jstrunk@@fs.fed.us>
+#'
 
+#'@param csv_to_sqlite
+#'@param csv_folder
+#'@param tb_summary
+#'@param tb_csv
+#'@param project
+#'@param resolution
+#'@param units
+#'@param proj4
+#'@param notes
+#'@param skip_loaded
+#'@param n_load
 
+#'
+#'@return
+#'  NULL
+#'
+#'@examples
+#'  library(lasR)
+#'  dir_csv="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\gridmetrics1\\gridmetrics_csv\\"
+#'    dir_sqlite="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\sqlite\\"
+#'    dir.create(dir_sqlite)
+#'
+#'    require(RSQLite)
+#'    db <- dbConnect(SQLite(), dbname=file.path(dir_sqlite,"2015_NAIP_Metrics2.db"),sychronous = "off")
+#'
+#'
+#'    csv_to_sqlite(db=db
+#'                  ,csv_folder=dir_csv
+#'    )
+#'
+#'@import RSQLite
+#'
+#'@export
+#
+#'@seealso \code{\link{run_gridmetrics}}\cr \code{\link{lasR_project}}\cr
 
 
 csv_to_sqlite=function(db
@@ -11,46 +64,97 @@ csv_to_sqlite=function(db
                        ,units="feet"
                        ,proj4=""
                        ,notes=""
-
-){
+                       ,skip_loaded=T
+                       ,n_load=NA
+                       ){
 
   require(RSQLite)
 
   csv_files=list.files(csv_folder,full.names=T,pattern="[.]csv")
 
-  dat0=read.csv(csv_files[1])
-  names(dat0)=gsub("[.]+","_",gsub("^x[.]","",tolower(names(dat0))))
-  names0=names(dat0)
-  dbWriteTable(db,tb_csv,dat0[0,],overwrite = TRUE,append=F)
+  #check for existence of tables
+  tb_exist=dbListTables(db)
 
+  #prep data table - get column names
+  dat0=read.csv(csv_files[1])
+  names(dat0)=gsub("elev","ht",gsub("[.]+","_",gsub("^x[.]","",tolower(names(dat0)))))
+  names0=names(dat0)
+  col_classes=sapply(dat0,class)
+
+
+  if(!tb_csv %in% tb_exist | !skip_loaded ){
+
+    dbWriteTable(db,tb_csv,dat0[0,],overwrite = TRUE,append=F)
+
+  }
+
+  if(!is.na(n_load)){
+
+    csv_files=csv_files[1:min(n_load,length(csv_files))]
+
+  }
+
+  #prep / read summary table
+  if(!tb_summary %in% tb_exist | !skip_loaded){
+
+    summ0=data.frame(date=as.character(Sys.Date()),file="",nrows=0,status="")
+    dbWriteTable(db,tb_summary,summ0,overwrite = TRUE,append=F)
+
+  }else{
+
+    summ0=dbReadTable(db,tb_summary)
+    files_loaded=basename(csv_files) %in% basename(summ0$file[summ0$status == "completed"])
+    csv_files=csv_files[!files_loaded]
+
+  }
+
+  if(length(csv_files)==0) return()
+
+  #prep process
   errs=list()
   n_files=length(csv_files)
 
   for(i in 1:n_files){
 
-    dati=read.csv(csv_files[i])
-    names(dati)=names0
-    dati=dati[ dati[,"total_all_returns"] > -1 , ]
-    if(nrow(dati)>0) errs[i]=try(dbWriteTable(db,tb_csv,dati,append=T))
-    print(paste(i,"from",n_files,"files at",Sys.time()))
+    dati=try(read.csv(csv_files[i],colClasses = col_classes))
+
+    if(!class(dati)=="try-error"){
+
+      names(dati)=names0
+      dati=dati[ dati[,"total_all_returns"] > -1 , ]
+
+      #write data
+      if(nrow(dati)>0)errs[[i]]=try(dbWriteTable(db,tb_csv,dati,append=T))
+
+      #write summary record
+      summ_i=data.frame(date=as.character(Sys.Date()),file=csv_files[i],nrows=nrow(dati),status="completed")
+      try(dbWriteTable(db,tb_summary,summ_i,append=T))
+
+    }
+    print(paste(csv_files[i],", file",i,"from",n_files,"files at",Sys.time()))
+  }
+
+
+
 
   }
 
 
-}
 
-if(F){
 
-  library(lasR)
-  dir_csv="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_02\\gridmetrics_csv\\"
-  dir_sqlite="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\sqlite\\"
-  dir.create(dir_sqlite)
-
-  require(RSQLite)
-  db <- dbConnect(SQLite(), dbname=file.path(dir_sqlite,"2015_NAIP_Metrics_usgs006.db"),sychronous = "off")
-
-  csv_to_sqlite(db=db
-                ,csv_folder=dir_csv
-  )
-
-}
+# if(F){
+#
+#   library(lasR)
+#   dir_csv="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\gridmetrics1\\gridmetrics_csv\\"
+#   dir_sqlite="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP\\sqlite\\"
+#   dir.create(dir_sqlite)
+#
+#   require(RSQLite)
+#   db <- dbConnect(SQLite(), dbname=file.path(dir_sqlite,"2015_NAIP_Metrics2.db"),sychronous = "off")
+#
+#
+#   csv_to_sqlite(db=db
+#                 ,csv_folder=dir_csv
+#                 )
+#
+# }

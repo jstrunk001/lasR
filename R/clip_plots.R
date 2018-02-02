@@ -73,7 +73,7 @@ clip_plots=function(
       row.names(idxyd)=idxyd[,1]
 
       plot_polys_in0=points2polys(idxy)
-      plot_polys_in=SpatialPolygonsDataFrame(polys_in_0,data=idxyd)
+      plot_polys_in=SpatialPolygonsDataFrame(plot_polys_in0,data=idxyd)
 
     }
 
@@ -112,18 +112,36 @@ clip_plots=function(
 
     print("intersect plots and tiles");print(Sys.time())
 
+
     #parse intersections and compile data
-    plots_tiles=rbind.fill(mapply(function(x,y,plots,tiles){data.frame(plots[as.character(x),],tiles[y,],row.names=NULL)},names(proj_plot_x1),proj_plot_x1,SIMPLIFY = F, MoreArgs = list(plots=plot_polys_spdf@data,tiles=proj_polys_spdf@data)))
+    fn_parse=function(x,y,plots,tiles){
+
+      data.frame(plots[as.character(x),,drop=F],tiles[y,],row.names=NULL)
+
+    }
+
+    plots_tiles=rbind.fill(mapply(fn_parse
+                                  ,x=names(proj_plot_x1)
+                                  ,y=proj_plot_x1
+                                  ,SIMPLIFY = F
+                                  , MoreArgs =
+                                    list(
+                                      plots=plot_polys_spdf@data
+                                      ,tiles=proj_polys_spdf@data
+                                      )
+                                  )
+                           )
 
     #merge duplicate records
-    dup_id=.dup2(as.character(plots_tiles$plot))
+    dup_id=.dup2(as.character(plots_tiles[,id_field_plots]))
     dups=plots_tiles[dup_id,]
     no_dups_df=plots_tiles[!dup_id,]
-    spl_dups=split(dups,as.character(dups$plot))
+    spl_dups=split(dups,as.character(dups[,id_field_plots]))
     dups_df=.fn_merge(spl_dups)
     plots_tiles_unq=rbind(no_dups_df,dups_df)
 
-    row.names(plots_tiles_unq)=as.character(plots_tiles_unq[,id_field_plots])
+    plots_tiles_unq[,id_field_plots]=as.character(plots_tiles_unq[,id_field_plots])
+    row.names(plots_tiles_unq)=plots_tiles_unq[,id_field_plots]
 
     print("merge duplicates");print(Sys.time())
 
@@ -152,7 +170,7 @@ clip_plots=function(
   #skip existing files
   if(skip_existing){
     files_out_dir=unlist(c(list.files(dir_out,pattern="[.]las"),list.files(dir_skip,pattern="[.]las")))
-    out_nms=paste("plot_",plot_polys_merge@data$plot,".las",sep="")
+    out_nms=paste("plot_",plot_polys_merge@data[,id_field_plots],".las",sep="")
     plot_polys_merge=plot_polys_merge[!out_nms %in% files_out_dir,]
   }
 
@@ -163,7 +181,7 @@ clip_plots=function(
 
   #clip points
   spl_plots=sp::split(plot_polys_merge,1:nrow(plot_polys_merge))
-browser()
+
   if(n_core>1){
     clus=makeCluster(n_core)
     clusterEvalQ(clus,library(lasR))
