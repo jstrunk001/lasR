@@ -229,8 +229,6 @@ run_gridmetrics2=function(
     print("create list of dtms and las files");print(Sys.time())
   }
 
-
-
   if(n_core>1 & is.na(fast_cache)){
 
     clus=makeCluster(n_core)
@@ -244,87 +242,14 @@ run_gridmetrics2=function(
     clus=makeCluster(n_core)
     clusterEvalQ(clus,{library(lasR);gc()})
 
-    #figure out number of clumps to make
-    n_clumps=ceiling(length(coms)/n_cache)
-    if(n_clumps > 1) clumps=cut(sample(1:nrow(proj_polys@data),nrow(proj_polys@data)),n_clumps,labels=F)
-    #if(n_clumps > 1) clumps=cut(1:nrow(proj_polys@data),n_clumps,labels=F)
-    else clumps=rep(1,nrow(proj_polys@data))
+    #files from and to
+    files_from = strsplit(proj_polys@data$las_file_org,",")
+    files_to = strsplit(proj_polys@data$las_file,",")
 
-    #prepare for processing
-    #iterate through files in clumps
-    for(i in 1:n_clumps){
+    #run processing
+    res=clusterMap( clus , .fn_copy_shell , coms , files_from , files_to ) ; gc()
 
-      print(paste("start clump",i,"of",n_clumps,"clumps of",n_cache, "at",Sys.time()))
-
-      this_clump = clumps==i
-      next_clump = clumps==i+1
-
-    #copy to fast cache
-      if(i == 1 & n_clumps ==1){
-
-        #copy for this iteration
-        files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
-        files_to=unique(unlist(strsplit(proj_polys@data$las_file[this_clump],",")))
-        diff_i = ! files_from == files_to
-        file.copy(files_from[diff_i],files_to[diff_i],overwrite = F)
-
-        veci=coms[this_clump]
-      }
-
-      if(i == 1 & n_clumps >1){
-
-        #copy for this iteration
-        files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
-        files_to=unique(unlist(strsplit(proj_polys@data$las_file[this_clump],",")))
-        diff_i = ! files_from == files_to
-        copy_status=mapply(file.copy,files_from[diff_i],files_to[diff_i],overwrite = F) #otherwise partial copies left with 0kb
-
-        if( sum( !copy_status ) > 0 ){
-          #bad_copy=!file.exists(files_to) #better than !copy_status ?
-          bad_copy=!copy_status
-          copy_status1=mapply(file.copy,files_from[diff_i][bad_copy],files_to[diff_i][bad_copy],overwrite = F)
-        }
-
-        #asynchronous copy for next iteration
-        files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[next_clump],",")))
-        files_to=unique(unlist(strsplit(proj_polys@data$las_file[next_clump],",")))
-        diff_i = ! files_from == files_to
-
-        veci=as.list(c(NA,coms[this_clump]))
-        veci[[1]]=data.frame(files_from[diff_i],files_to[diff_i],stringsAsFactors = F )
-
-      }
-      if(i >1 & i < n_clumps){
-
-        #asynchronous copy for next iteration
-        files_from=unique(unlist(strsplit(proj_polys@data$las_file_org[next_clump],",")))
-        files_to=unique(unlist(strsplit(proj_polys@data$las_file[next_clump],",")))
-        diff_i = ! files_from == files_to
-        veci=as.list(c(NA,coms[this_clump]))
-        veci[[1]]=data.frame(files_from[diff_i],files_to[diff_i],stringsAsFactors = F)
-
-      }
-      if(i > 1 & i==n_clumps){
-
-        veci=coms[this_clump]
-
-      }
-if(debug) browser()
-      #run process
-      res=parLapply( clus ,veci, .fn_copy_shell) ; gc()
-      clusterEvalQ(clus,{gc()})
-      clusterEvalQ(clus,{ls()})
-      gc()
-
-      #delete temporary files - this clump
-      files_from=(unlist(strsplit(proj_polys@data$las_file_org[this_clump],",")))
-      files_to=(unlist(strsplit(proj_polys@data$las_file[this_clump],",")))
-      diff_i= files_from != files_to
-      sapply(files_to[diff_i],unlink)
-
-      print(paste("end clump",i,"ofI",n_clumps,"clumps of",n_cache, "at",Sys.time()))
-
-    }
+    #clean up
     gc();stopCluster(clus);gc()
 
   }else{
@@ -334,39 +259,15 @@ if(debug) browser()
   }
   print("run fusion");print(Sys.time())
 
-
-
-
 }
 
-.fn_copy_shell=function(x){
-  if(class(x)=="data.frame"){
-    diffs = x[,1] != x[,2]
-    file.copy(x[diffs,1],x[diffs,2],overwrite = F)
-  }
-  else return(shell(x))
-}
+.fn_copy_shell=function(cmd,files_from,files_to){
 
-.do_shell=function(comi,idi,tab_out,emptyi,lock.name){
-
-  #test for completion status &
-  #create an empty file to denote that processing has not completed, then unlink the empty file
-  if(file.exists(emptyi)){
-    unlink(list.files(basename(emptyi),pattern=paste(idi)))
-    #clean records from database too
-  }
-  file(emptyi)
-  shell(comi)
-
-  dati=read.csv(list.files(pattern=paste(idi,".*[.]csv$",sep=""))[1])
-
-  #lock and write
-  ll = lock(lock.name)
-  dbWriteTable(db,tab_out,dati)
-  unlock(ll)
-
-  #
-  unlink(emptyi)
+  file.copy(files_from,files_to)
+  res=shell(cmd,intern=T,wait=T)
+  gc()
+  unlink(files_to,force=T)
+  return(res)
 
 }
 
@@ -378,11 +279,11 @@ if(F){
   gmi=run_gridmetrics2(
     lasR_project_poly="D:\\projects\\2017_WA_DSM_Pilot_usgs\\2017Aug_NAIP_usgs\\lasR_project003.shp"
     ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_07\\"
-    ,dir_dtm="D:\\projects\\usgs_dtms\\dtms\\"
-    ,dir_las="D:\\projects\\naip_2015_laz\\"
+    ,dir_dtm="c:\\usgs_dtms\\dtms\\"
+    ,dir_las="D:\\naip_2015_laz\\"
     ,n_core=23
     #,existing_coms="C:\\Temp\\run_gridmetrics\\2018Jan21_152618\\all_commands.txt"
-    ,fast_cache=NA#c(rep("r:\\temp",10),rep("c:\\temp",3),rep("i:\\temp",3),rep(NA,3))
+    ,fast_cache=c(rep("r:\\temp",10),rep("c:\\temp",3),rep("i:\\temp",3),rep(NA,3))
     ,n_cache=300
     ,debug=F
   )

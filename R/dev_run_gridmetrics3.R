@@ -378,11 +378,11 @@ if(F){
   gmi=run_gridmetrics2(
     lasR_project_poly="D:\\projects\\2017_WA_DSM_Pilot_usgs\\2017Aug_NAIP_usgs\\lasR_project003.shp"
     ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_07\\"
-    ,dir_dtm="D:\\projects\\usgs_dtms\\dtms\\"
-    ,dir_las="D:\\projects\\naip_2015_laz\\"
+    ,dir_dtm="c:\\usgs_dtms\\dtms\\"
+    ,dir_las="D:\\naip_2015_laz\\"
     ,n_core=23
     #,existing_coms="C:\\Temp\\run_gridmetrics\\2018Jan21_152618\\all_commands.txt"
-    ,fast_cache=NA#c(rep("r:\\temp",10),rep("c:\\temp",3),rep("i:\\temp",3),rep(NA,3))
+    ,fast_cache=c(rep("r:\\temp",10),rep("c:\\temp",3),rep("i:\\temp",3),rep(NA,3))
     ,n_cache=300
     ,debug=F
   )

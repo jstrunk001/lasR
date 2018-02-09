@@ -29,6 +29,7 @@
 #'@param notes
 #'@param skip_loaded
 #'@param n_load
+#'@param use_col_classes read colClasses from first file, and apply to remaining files - big read speedup
 
 #'
 #'@return
@@ -66,6 +67,7 @@ csv_to_sqlite=function(db
                        ,notes=""
                        ,skip_loaded=T
                        ,n_load=NA
+                       ,use_col_classes=T
                        ){
 
   require(RSQLite)
@@ -85,7 +87,12 @@ csv_to_sqlite=function(db
   if(!tb_csv %in% tb_exist | !skip_loaded ){
 
     dbWriteTable(db,tb_csv,dat0[0,],overwrite = TRUE,append=F)
+    dat1=dbGetQuery(db,paste("select * from ",tb_csv,"limit 50"))
+    names1=names(dat1)
+  }else{
 
+    dat1=dbGetQuery(db,paste("select * from ",tb_csv,"limit 50"))
+    names1=names(dat1)
   }
 
   if(!is.na(n_load)){
@@ -98,7 +105,7 @@ csv_to_sqlite=function(db
   if(!tb_summary %in% tb_exist | !skip_loaded){
 
     summ0=data.frame(date=as.character(Sys.Date()),file="",nrows=0,status="")
-    dbWriteTable(db,tb_summary,summ0,overwrite = TRUE,append=F)
+    dbWriteTable(db,tb_summary,summ0[0,],overwrite = TRUE,append=F)
 
   }else{
 
@@ -116,20 +123,26 @@ csv_to_sqlite=function(db
 
   for(i in 1:n_files){
 
-    dati=try(read.csv(csv_files[i],colClasses = col_classes))
+    if(use_col_classes) dati=try(read.csv(csv_files[i],colClasses = col_classes))
+    if(!use_col_classes) dati=try(read.csv(csv_files[i]))
 
     if(!class(dati)=="try-error"){
 
-      names(dati)=names0
+      #match names / number of cols
+      dati=dati[,1:length(names1)]
+      names(dati)=names1
       dati=dati[ dati[,"total_all_returns"] > -1 , ]
 
       #write data
-      if(nrow(dati)>0)errs[[i]]=try(dbWriteTable(db,tb_csv,dati,append=T))
+      if(nrow(dati)>0){
+         err_i=try(dbWriteTable(db,tb_csv,dati,append=T))
 
-      #write summary record
-      summ_i=data.frame(date=as.character(Sys.Date()),file=csv_files[i],nrows=nrow(dati),status="completed")
-      try(dbWriteTable(db,tb_summary,summ_i,append=T))
-
+        #write summary record
+        if(!class(err_i) == "try-error"){
+          summ_i=data.frame(date=as.character(Sys.Date()),file=csv_files[i],nrows=nrow(dati),status="completed")
+          try(dbWriteTable(db,tb_summary,summ_i,append=T))
+        }
+      }
     }
     print(paste(csv_files[i],", file",i,"from",n_files,"files at",Sys.time()))
   }
