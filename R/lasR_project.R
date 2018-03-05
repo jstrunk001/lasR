@@ -73,8 +73,8 @@ lasR_project=function(
   ,project_las="test_project"
   ,dtm_year="2099"
   ,las_year="2099"
-  ,scan_dtms=T
-  ,scan_las=T
+  ,do_scan_dtms=T
+  ,do_scan_las=T
   ,tile_size=1650
   ,pixel_size=66
   ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
@@ -100,8 +100,10 @@ lasR_project=function(
   #create sqlite database / tables
 
   #inventory las and dtms
-  if(scan_las) scan_las(project=project_las, project_year=las_year,dir_las=dir_las)
-  if(scan_dtms) scan_dtm(project=project_dtm, project_year=dtm_year,dir_dtm=dir_dtm)
+  if(do_scan_las) scan_las(project=project_las, project_year=las_year,dir_las=dir_las,create_polys=T)
+  print("scan_las");print(Sys.time())
+  if(do_scan_dtms) scan_dtm(project=project_dtm, project_year=dtm_year,dir_dtm=dir_dtm)
+  print("scan_dtm");print(Sys.time())
 
   #file names
   path_dtm_proj=paste(dir_dtm,"/manage_dtm",sep="")
@@ -179,14 +181,16 @@ print("Merge");print(Sys.time())
   #write project to file
   #write polygons
   n_err=0
-  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"))
+  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent=T)
 
   if(class(write_test)=="try-error"){
-    n_err=list.files(project_path,"lasR_project.*shp")
-    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"))
+    n_err=length(list.files(project_path,"lasR_project.*shp"))
+    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent = T)
   }
-  if(class(write_test)=="try-error") warning("Error trying to write lasR_project geometry",write_test)
-
+  if(class(write_test)=="try-error"){
+    warning("Error trying to write lasR_project geometry",write_test)
+    browser()
+  }
   #write project to file
   #write csv
   out_csv=file.path(project_path,sprintf("lasR_project%03d.csv", n_err+1))

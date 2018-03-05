@@ -119,6 +119,8 @@ read_dtm=function(
     if(header_in[1,"z_format"] == 2 ) dataType(r_grid) = "FLT4S"
     if(header_in[1,"z_format"] == 3 ) dataType(r_grid) = "FLT8S"
 
+    if(header_in[1,"z_format"] < 2 ) r_grid = as.integer(r_grid)
+
     #assign NA values
     r_grid[r_grid==NA_val]=NA
 

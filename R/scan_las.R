@@ -71,12 +71,9 @@ scan_las=function(
 
   if(exist_project_id_csv){
 
-    project_id_df=read.csv(project_id_csv)
-    las_id_df = read.csv(las_id_csv)
+    project_id_df=read.csv(project_id_csv,stringsAsFactors = F)
 
   }else{
-
-    las_id_df = data.frame()
 
     project_id_df=data.frame(
       project_id=UUIDgenerate(use.time = NA)
@@ -92,6 +89,12 @@ scan_las=function(
 
   }
 
+  if(exist_las_id_csv){    las_id_df = read.csv(las_id_csv,stringsAsFactors = F)
+
+  }else{    las_id_df = data.frame()
+
+  }
+
   proj_id=project_id_df[1,"project_id"]
 
   #write little disclaimer / meta file to folder e.g. what is this crap in this folder
@@ -99,7 +102,7 @@ scan_las=function(
   disclaimer_txt=paste(project_id_folder,"DISCLAIMER.txt",sep="")
   writeLines(disclaimer,disclaimer_txt)
 
-  #check if las files exist
+  #check if las files exist / are already in las_id_df
   names_las=basename(files_las)
   names_las_exist = names_las %in% las_id_df$file_name
   las_update = sum(!names_las_exist) > 0
@@ -123,22 +126,29 @@ scan_las=function(
     headers[,"file_path"]=files_las
     headers[,"load_date"]=proc_date
     headers[,"notes"]=notes
-    las_id_df=rbind(headers,las_id_df)
-    write.csv(las_id_df,las_id_csv)
+
+    if(nrow(las_id_df) > 0) las_id_df=rbind(headers,las_id_df[,names(headers)])
+    else las_id_df = headers
+
+    write.csv(las_id_df,las_id_csv,row.names=F)
 
   }
 
 
   if(create_polys){
 
-    las_id_df=read.csv(las_id_csv,stringsAsFactors =F)
+    las_id_df=read.csv(las_id_csv , stringsAsFactors =F)
 
     polys_rds=paste(project_id_folder,"las_polys.rds",sep="")
     polys_shp=paste(project_id_folder,"las_polys.shp",sep="")
 
-    las_polys=bbox2polys(las_id_df[,c("las_id","min_x","max_x","min_y","max_y")])
-    row.names(las_id_df)=las_id_df[,"las_id"]
-    las_polys=sp::SpatialPolygonsDataFrame(las_polys,las_id_df)
+    #las_id_df[is.na(las_id_df[,c("max_y")]),][1:5,]
+    bad_files=apply(las_id_df[,c("min_x","max_x","min_y","max_y")],1,function(x)any(is.na(x)) )
+    las_id_df1=las_id_df[!bad_files,]
+
+    las_polys=bbox2polys(las_id_df1[,c("las_id","min_x","max_x","min_y","max_y")])
+    row.names(las_id_df1)=las_id_df1[,"las_id"]
+    las_polys=sp::SpatialPolygonsDataFrame(las_polys,las_id_df1)
 
     #save outputs
     try(saveRDS(las_polys,polys_rds))

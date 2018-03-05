@@ -30,7 +30,7 @@
 #'
 #'@import tools, sp
 #'
-#'@export
+#export
 #
 #'@seealso \code{\link{read_dtm}}\cr \code{\link{gridmetrics}}\cr
 
@@ -66,8 +66,8 @@ read_header=function(paths,...){
 read_header.character=function(paths){
 
   if(length(paths)==0) stop("'path' is empty")
-  if(length(paths)==1) return(.read_one_header(paths))
-  if(length(paths) >1) return(.read_headers(paths))
+  if(length(paths)==1) try(return(.read_one_header(paths)))
+  if(length(paths) >1) try(return(.read_headers(paths)))
 
 }
 
@@ -81,8 +81,10 @@ read_header.character=function(paths){
 
 
   con <- file(path, open = 'rb')
-  rBcon <- readBin(con, 'raw', n = 96, size = 1)
-  PHB1 <- data.frame(
+  rBcon <-readBin(con, 'raw', n = 227, size = 1, signed = F)
+  try(close(con))
+
+  phb <- data.frame(
     row.names = c(
       'signature'
       , 'Source_ID'
@@ -98,33 +100,7 @@ read_header.character=function(paths){
       , 'Create_Day'
       , 'Create_Year'
       , 'Header_Size'
-    )
-    ,Value = c(
-      readBin(rBcon[1:4], 'char', size = 4, n = 1),
-      readBin(rBcon[5:6], 'int', size = 2, n = 1, signed = FALSE),
-      readBin(rBcon[7:8], 'int', size = 2, n = 1),
-      readBin(rBcon[9:12], 'int', size = 4, n = 1),
-      readBin(rBcon[13:14], 'int', size = 2, n = 1, signed = FALSE),
-      readBin(rBcon[15:16], 'int', size = 2, n = 1, signed = FALSE),
-      readBin(rBcon[17:24], 'char', size = 4, n = 1, signed = FALSE),
-      readBin(rBcon[25], 'char', size = 1, n = 1, signed = FALSE),
-      readBin(rBcon[26], 'char', size = 1, n = 1, signed = FALSE),
-      readBin(rBcon[27:58], 'char', size = 32, n = 1),
-      readBin(rBcon[59:90], 'char', size = 32, n = 1),
-      readBin(rBcon[91:92], 'int', size = 2, n = 1, signed = FALSE),
-      readBin(rBcon[93:94], 'int', size = 2, n = 1, signed = FALSE),
-      readBin(rBcon[95:96], 'int', size = 2, n = 1, signed = FALSE)),
-    stringsAsFactors = FALSE
-  )
-  rBcon <- c(
-    rBcon,
-    readBin(con, 'raw', n = as.numeric(PHB1['Header_Size', ]) - 96, size = 1)
-  )
-  close(con)
-
-  PHB2<- data.frame(
-    row.names = c(
-      'Off2points'
+      , 'Off2points'
       , 'N_VLR'
       , 'Format_ID'
       , 'Rec_length'
@@ -145,12 +121,26 @@ read_header.character=function(paths){
       , 'MaxY'
       , 'MinY'
       , 'MaxZ'
-      , 'MinZ'
-    ),
-    Value = c(
+      , 'MinZ')
+
+    ,Value = c(
+      readBin(rBcon[1:4], 'char', size = 4, n = 1),
+      readBin(rBcon[5:6], 'int', size = 2, n = 1, signed = FALSE),
+      readBin(rBcon[7:8], 'int', size = 2, n = 1),
+      readBin(rBcon[9:12], 'int', size = 4, n = 1),
+      readBin(rBcon[13:14], 'int', size = 2, n = 1, signed = FALSE),
+      readBin(rBcon[15:16], 'int', size = 2, n = 1, signed = FALSE),
+      readBin(rBcon[17:24], 'char', size = 4, n = 1, signed = FALSE),
+      readBin(rBcon[25], 'char', size = 1, n = 1, signed = FALSE),
+      readBin(rBcon[26], 'char', size = 1, n = 1, signed = FALSE),
+      readBin(rBcon[27:58], 'char', size = 32, n = 1),
+      readBin(rBcon[59:90], 'char', size = 32, n = 1),
+      readBin(rBcon[91:92], 'int', size = 2, n = 1, signed = FALSE),
+      readBin(rBcon[93:94], 'int', size = 2, n = 1, signed = FALSE),
+      readBin(rBcon[95:96], 'int', size = 2, n = 1, signed = FALSE),
       readBin(rBcon[97:100], 'int', size = 4, n = 1),
       readBin(rBcon[101:104], 'int', size = 4, n = 1),
-      readBin(rBcon[105], 'char', size = 1, n = 1, signed = FALSE),
+      readBin(rBcon[105],"int", size = 1, signed = F),
       readBin(rBcon[106:107], 'int', size = 2, n = 1, signed = FALSE),
       readBin(rBcon[108:111], 'int', size = 4, n = 1),
       readBin(rBcon[112:115], 'int', size = 4, n = 1),
@@ -170,12 +160,11 @@ read_header.character=function(paths){
       readBin(rBcon[204:211], 'double', size = 8, n = 1, signed = TRUE),
       readBin(rBcon[212:219], 'double', size = 8, n = 1, signed = TRUE),
       readBin(rBcon[220:227], 'double', size = 8, n = 1, signed = TRUE)
-    )
-    ,stringsAsFactors = FALSE
+    ),
+    stringsAsFactors = FALSE
   )
 
-  phb <- rbind(PHB1, PHB2)
-  rm(PHB1, PHB2)
+
 
   isLASF <- phb[1, 1] == 'LASF'
 
@@ -186,21 +175,26 @@ read_header.character=function(paths){
 
   phb['V_Maj', 1] <- ifelse(phb['V_Maj', 1] == '\001', 1, phb['V_Maj', 1])
   phb['V_Maj', 1] <- ifelse(phb['V_Maj', 1] == '\002', 2, phb['V_Maj', 1])
-  #     			phb['V_Maj', 1] <- ifelse(phb['V_Maj', 1] == '\003', 3, phb['V_Maj', 1])
-  #     			phb['V_Maj', 1] <- ifelse(phb['V_Maj', 1] == '\004', 4, phb['V_Maj', 1])
 
   phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\001', 1, phb['Format_ID', 1])
   phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\002', 2, phb['Format_ID', 1])
   phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\003', 3, phb['Format_ID', 1])
   phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\004', 4, phb['Format_ID', 1])
 
-  if (!isLASF) {try(close(con)); stop(path, ' is not a valid LAS file') }
+  #laz files mess with format field
+  phb['Format_ID', 1] <- ifelse(as.numeric(phb['Format_ID', 1]) > 127, as.numeric(phb['Format_ID', 1]) - 128, phb['Format_ID', 1])
+
+  if (!isLASF) { warning(path, ' is not a valid LAS/LAZ file') }
 
   if(phb['V_Min',]=="") phb['V_Min',]=0
 
   if(as.numeric(phb['V_Maj',])==1 & as.numeric(phb['V_Min',])>3){
 
-    PHB3<- data.frame(
+    con <- file(path, open = 'rb')
+    rBcon <- readBin(con, 'raw', n = 375, size = 1)
+    try(close(con))
+
+    phb_add<- data.frame(
       row.names = c(
         'st_wdpr'
         , 'st_vlr'
@@ -247,7 +241,7 @@ read_header.character=function(paths){
       ,stringsAsFactors = FALSE
     )
 
-    phb <- rbind(phb , PHB3)
+    phb <- rbind(phb , phb_add)
     if(phb["N_all",]==0){
       phb["N_all",]=phb["n_pr",]
     }
@@ -265,7 +259,7 @@ read_header.character=function(paths){
 
   phb[9, 1] <- ifelse(phb[9, 1] == '\001', 1, phb[9, 1])
   phb[9, 1] <- ifelse(phb[9, 1] == '\002', 2, phb[9, 1])
-  if (!isLASF) {close(con); stop(path, ' is not a valid LAS file') }
+  if (!isLASF) {try(close(con)); warning(path, ' is not a valid LAS file') }
 
   return(phb)
 
@@ -295,7 +289,7 @@ read_header.character=function(paths){
       con <- file(path, open = 'rb')
       seek(con, seek_to, rw = "read")
       dat_bin=readBin(con, "raw", n = nBytes, size = 1, endian = "little")
-      close(con)
+      try(close(con))
 
       if(length(dat_bin) !=nBytes ){
 
@@ -339,3 +333,6 @@ read_header.character=function(paths){
       return(data.frame(X, Y, Z, Intensity = i, Classification = cl))
 
 }
+
+
+

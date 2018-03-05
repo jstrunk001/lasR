@@ -36,14 +36,30 @@ if(F){
 }
 if(F){
 
+  library(lasR)
+
+  scan_las(
+
+    project="2015_naip"
+    ,project_year=2015
+    ,dir_las ="D:\\projects\\2015_hood_canal_lidar\\laz"
+    #,dir_las ="D:\\test"
+
+    )
+
+
+}
+
+if(F){
+
   #library(rgdal)
-  #library(lasR)
+  library(lasR)
 
  # proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_counties_WASP")
 
   lasR_project(
-    dir_las="D:\\naip_2015_laz"
-    ,dir_dtm="D:\\usgs_dtms\\dtm_tiles"
+    dir_las="D:\\projects\\naip_2015_laz"
+    ,dir_dtm="D:\\usgs_dtms\\dtms"
     ,dir_project="d:\\projects\\2017_WA_DSM_Pilot_usgs\\"
     ,project="2017Aug_NAIP_usgs"
     ,project_dtm="usgs"
@@ -51,8 +67,38 @@ if(F){
     ,dtm_year="2017"
     ,las_year="2015"
     #,mask=proj_area
-    ,scan_dtms=T
-    ,scan_las=F
+    ,do_scan_dtms=T
+    ,do_scan_las=T
+    ,tile_size=3300
+    ,pixel_size=66
+    ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
+    ,crs="+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs"
+  )
+
+  # lasR_subset("C:\\projects\\2017_WA_DSM_Pilot\\archive\\DSM_Pilot_B_lasR\\intersections.csv"
+  #             ,"C:/projects/2017_WA_DSM_Pilot/DSM_Pilot_5cnty_lasR/boundary/5_counties_WASP.shp"
+  #             ,"C:/projects/2017_WA_DSM_Pilot/DSM_Pilot_5cnty_lasR/lasR_project"
+  # )
+}
+if(F){
+
+  #library(rgdal)
+  library(lasR)
+
+  # proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_counties_WASP")
+
+  lasR_project(
+    dir_las="D:\\projects\\naip_2015_laz"
+    ,dir_dtm="D:\\projects\\lidar_dtms"
+    ,dir_project="d:\\projects\\2017_WA_DSM_Pilot\\"
+    ,project="2017Aug_NAIP"
+    ,project_dtm="lidar"
+    ,project_las="naip"
+    ,dtm_year="2017"
+    ,las_year="2015"
+    #,mask=proj_area
+    ,do_scan_dtms=F
+    ,do_scan_las=F
     ,tile_size=3300
     ,pixel_size=66
     ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
@@ -69,12 +115,12 @@ if(F){
   library(lasR)
 
   gmi=run_gridmetrics(
-    lasR_project_poly="D:\\projects\\2017_WA_DSM_Pilot_usgs\\2017Aug_NAIP_usgs\\lasR_project001.shp"
-    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_01\\"
-    ,dir_dtm="c:\\usgs_dtms\\dtm_tiles"
+    lasR_project_poly="D:\\projects\\2017_WA_DSM_Pilot_usgs\\2017Aug_NAIP_usgs\\lasR_project003.shp"
+    ,dir_out="I:\\projects\\2017_WA_DSM_Pilot\\2017Aug_NAIP_usgs\\gridmetrics_05\\"
+    ,dir_dtm="c:\\usgs_dtms\\dtms\\"
     ,dir_las="D:\\naip_2015_laz\\"
-    ,n_core=8
-    ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec13_151040\\all_commands.txt"
+    ,n_core=12
+    #,existing_coms="C:\\Temp\\run_gridmetrics\\2017Dec13_151040\\all_commands.txt"
     ,fast_cache="r:\\temp"
    )
 
