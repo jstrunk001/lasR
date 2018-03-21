@@ -1,5 +1,3 @@
-##Header for DNR remote sensing inventory project
-##all comments that should appear in the document need to start with pound + apostrophe
 #'@name write_dtm
 #'@title write USDA FUSION format raster
 #'
@@ -18,7 +16,7 @@
 #'0.1 \tab 2017 Dec 12 - Operational \cr
 #'}
 #'@author
-#'Jacob Strunk <jstrunk@fs.fed.us>
+#'Jacob Strunk <jstrunk@@fs.fed.us>
 #'
 #'@param dtm raster file
 #'@param dtm_out path to specific FUSION dtm file
