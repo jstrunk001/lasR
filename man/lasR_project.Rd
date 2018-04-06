@@ -7,9 +7,9 @@
 lasR_project(dir_las = NA, dir_dtm = NA,
   dir_project = "c:/lidar_projects/", project = "test_project",
   project_dtm = "test_project", project_las = "test_project",
-  dtm_year = "2099", las_year = "2099", scan_dtms = T, scan_las = T,
-  tile_size = 1650, pixel_size = 66, xmn = 561066, xmx = 2805066,
-  ymn = 33066, ymx = 1551066,
+  dtm_year = "2099", las_year = "2099", do_scan_dtms = T,
+  do_scan_las = T, tile_size = 1650, pixel_size = 66, xmn = 561066,
+  xmx = 2805066, ymn = 33066, ymx = 1551066,
   crs = "+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs",
   mask = NA, return = F)
 }
@@ -30,10 +30,6 @@ lasR_project(dir_las = NA, dir_dtm = NA,
 
 \item{las_year}{year of las files}
 
-\item{scan_dtms}{?scan dtm files}
-
-\item{scan_las}{?scan las files}
-
 \item{tile_size}{processing tile size}
 
 \item{pixel_size}{raster pixel size}
@@ -41,6 +37,10 @@ lasR_project(dir_las = NA, dir_dtm = NA,
 \item{xmn, xmx, ymn, ymx}{bound box for processing grid}
 
 \item{crs}{projection string}
+
+\item{scan_dtms}{?scan dtm files}
+
+\item{scan_las}{?scan las files}
 }
 \value{
 <Delete and Replace>

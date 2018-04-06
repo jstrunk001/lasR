@@ -101,7 +101,7 @@
 #'
 #'
 #'
-#'@seealso \code{\link{regsubsets}}\cr \code{\link{yet_another_function}}\cr
+#'@seealso \code{\link{regsubsets}}\cr
 #'
 #'@import leaps bootstrap parallel
 #'

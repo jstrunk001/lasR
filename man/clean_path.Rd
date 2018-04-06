@@ -50,7 +50,7 @@ Revision History
 
 }
 \seealso{
-\code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+\code{\link{grep}}\cr \code{\link{gsub}}\cr
 }
 \author{
 Jacob Strunk <jstrunk@fs.fed.us>

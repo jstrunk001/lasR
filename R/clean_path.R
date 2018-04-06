@@ -43,7 +43,7 @@
 #'
 
 #'
-#'@seealso \code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+#'@seealso \code{\link{grep}}\cr \code{\link{gsub}}\cr
 #'
 #'
 #Desired upgrades to this function:

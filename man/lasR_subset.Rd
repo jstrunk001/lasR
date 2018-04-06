@@ -4,7 +4,7 @@
 \alias{lasR_subset}
 \title{subset tiles in a lasR project}
 \usage{
-lasR_subset(path_project, path_shapefile, ignore_proj4 = T, dir_out = "",
+lasR_subset(path_project, path_shapefile, dir_out = "", ignore_proj4 = T,
   return = F, plot = T)
 }
 \arguments{
@@ -12,9 +12,9 @@ lasR_subset(path_project, path_shapefile, ignore_proj4 = T, dir_out = "",
 
 \item{path_shapefile}{path to shapefile}
 
-\item{ignore_proj4}{should proj4 differences be ignored}
-
 \item{dir_out}{where to put subset}
+
+\item{ignore_proj4}{should proj4 differences be ignored}
 
 \item{return}{should the subset project be returned}
 

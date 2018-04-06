@@ -24,7 +24,7 @@
 #'@examples
 #' #stuff
 #'
-#'@seealso \code{\link{lidR}}\cr \code{\link{rLIDAR}}\cr
+#'@seealso \code{\link{lidR}}\cr
 #'
 lasR=function(){}
 

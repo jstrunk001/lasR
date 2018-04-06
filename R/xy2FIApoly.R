@@ -38,7 +38,7 @@
 #'
 #'@export
 #
-#'@seealso \code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+#'@seealso \code{\link{bbox2polys}}\cr
 
 #Desired upgrades to this function:
 # add declination
@@ -97,7 +97,7 @@ xy2FIApoly=function(idxy,names=c(plot="plot",x="x",y="y"),create_polys=T){
 # if(F){
 #   res=xy2FIAplot(data.frame(plot=1:10, x=101:110*10000, y=101:110*10000),create_polys=T)
 #   spplot(res[1,],zcol=1,aspect=1,scales=list(draw=T),key.space=list(x=0.2,y=0.9,corner=c(0,1)))
-# 
+#
 #   library(leaflet)
 #   l1=leaflet(data=res[1,],options=leafletOptions(crs=leafletCRS(proj4def="+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs")))
 #   addPolygons(l1,data=res[1:2,])

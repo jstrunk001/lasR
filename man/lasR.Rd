@@ -26,7 +26,7 @@ Revision History
 
 }
 \seealso{
-\code{\link{lidR}}\cr \code{\link{rLIDAR}}\cr
+\code{\link{lidR}}\cr
 }
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
