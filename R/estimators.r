@@ -262,6 +262,12 @@ if(F){
   c(reg_mn=e6b$mean, pop_mn=mean(p6$pop$y),  diff_mn = mean(p6$pop$y) - e6b$mean)
 }
 
+#stratification
+if(F){
+
+
+  }
+
 .summary=function(res,res0){
 
   #computations
@@ -387,10 +393,7 @@ if(F){
   }
   if(var_type[1] ==  "bs"){
 
-    warning(".632 bootstrap estimator not yet implemented :-)")
-    # bootstrap prediction error estimation in least squares
-    # regression
-
+    # .632 bootstrap prediction error - unweighted
     lm_in=lm(reg_form, data=x)
 
     t_e = sum( residuals(lm_in) * x[, wt_nm] ) /  n
@@ -447,128 +450,53 @@ if(F){
 
 }
 
-fn_reg=function(
 
-  x
-  ,
-  resp_nm="volcfgrs"
-  ,
-  formula_reg=formula(volcfgrs ~ ht_p20 + ht_p70 + percentage_first_returns_above_6_00)
-  ,pop_totals=data.frame(str=NULL,Pop.Freq=NULL)
-  ,doplot=F
-  ,N
-  ,name=""
-  ,var_type=c("naive","calibrate","stratified","bootstrap")
-  ,strata_cuts=c(seq(-.01,250,15),500)
-  ,aux_nm="ht_p70"
-  ,pop_str
-){
+.str=function(x,resp_nm,strata_nm,wt_nm,ef_name,pop,N,var_type){
 
-  options(scipen=10^9)
-  pop_mn=pop_totals/N
-  x_num=sapply(x,is.numeric)
-  svy_srs = svydesign(ids=~1,data=x)
-  svy_reg=svyglm(formula_reg,svy_srs)
-  form_srs=as.formula(paste("~",resp_nm))
-  mn_srs = svymean(form_srs,design= svy_srs, deff=T)
-  tot_reg = predict(svy_reg,newdata=pop_totals)
-  mn_reg = predict(svy_reg,newdata=pop_totals / N)
+  form1 = as.formula(paste(resp_nm,"~",strata_nm))
+  ni = aggregate(form1, data=x, FUN=length )
+  names(ni)[2]="ni"
 
-  deff1 = data.frame(mn_reg)[,2]^2/data.frame(mn_srs)[,2]^2
-  deinv1 = 1/deff1
-  rsq1 = 1-data.frame(mn_reg)[,2]^2/data.frame(mn_srs)[,2]^2
+  if(var_type[1] == "asym"){
 
-  lm_in=lm(formula_reg,data=x)
-  lm_summ=summary(lm_in)
-  pd_reg=predict(lm_in,newdata=pop_mn,se.fit =T)
-  reg_se=pd_reg$residual.scale/sqrt(nrow(x))
-  deff2 = reg_se^2/data.frame(mn_srs)[,2]^2
-  deinv2 = 1/deff2
-  rsq2 = 1-reg_se^2/data.frame(mn_srs)[,2]^2
+    varsi = aggregate(form1,data=x,FUN=var )
+    sdi = aggregate(form1,data=x,FUN=sd )
+    mnsi = aggregate(form1,data=x,FUN=mean )
+    sst = aggregate(form1,data=x,FUN=function(x,...) c(sst=var(x)*(length(x)-1)) )
 
+    #fix cases of too few observations to compute strata variance
+    if(sum(ni[,"ni"]<2)>0){
 
-  pop_svy=c("(Intercept)" = N  ,unlist(pop_totals) )
+      has_one=which(ni[,"ni"]<2)
+      has_more=which(ni[,"ni"]>2)
 
+      for(i in 1:length(has_one)){
+        varsi[has_one[i],resp_nm] = varsi[has_more[which.min(abs(has_one-has_more))],resp_nm]
+      }
 
-  #estimate variance using calibration
-  #initial design, fit model
-  svy_srs = svydesign(ids=~1,data=x)
-  svy_reg=svyglm(formula_reg,svy_srs)
-
-  #create object with residuals
-  x1=x
-  x1$e=(residuals(svy_reg))^2
-
-  #create calibration object with residuals
-  svy_srs1 = svydesign(ids=~1,data=x1)
-  cb1=calibrate(svy_srs1,formula( ~ ht_p20 + ht_p70 + percentage_first_returns_above_6_00),population=pop_svy,deff=T)
-  form_cb = formula(paste("~",resp_nm))
-
-  #calibration estimator of variance
-  if(var_type[1] == "calibrate"){
-    se_reg_cb = sqrt(svytotal(~e,cb1,deff=T)[1]/ N / nrow(x1) )
-    rsq_cb = 1-se_reg_cb^2/data.frame(mn_srs)[,2]^2
-    de_cb =  se_reg_cb^2/data.frame(mn_srs)[,2]^2
-    deinv_cb = 1 / de_cb
-
-    reg_se = se_reg_cb
-    rsq2 = rsq_cb
-    deff2 = de_cb
-    deinv2 = deinv_cb
-
-  }
-
-  if(var_type[1] == "stratified"){
-
-    x1=x
-    x1[,"str"]=.cut(x,aux_nm=aux_nm,strata_cuts=strata_cuts)
-    res_ps=.ps(x1 , resp_nm=resp_nm, aux_nm = aux_nm ,  strata_nm="str" , pop=pop_str)
-
-    reg_se = res_ps$se_ps
-    rsq2 = res_ps$rsq_ps
-    deff2 = res_ps$deff_ps
-    deinv2 = res_ps$deinv_ps
-
-  }
-  if(var_type[1] == "bootstrap"){
-
-
-    mn_regi=NULL
-    for(i in 1:500){
-      xi=x[sample(nrow(x),replace=T),]
-      svy_srsi = svydesign(ids=~1,data=xi)
-      svy_regi=svyglm(formula_reg,svy_srsi)
-      mn_regi = c(mn_regi, predict(svy_regi,newdata=pop_totals / N))
     }
+    varsib = merge(merge(pop,varsi,by=strata_nm),ni,by=strata_nm)
+    varsib$sst = varsib[, resp_nm ] * (varsib[, "ni" ] - 1)
+    mnsib = merge(merge(pop,mnsi,by=strata_nm),ni,by=strata_nm)
 
-    reg_se = sd(mn_regi)
-    rsq2= 1-reg_se^2/data.frame(mn_srs)[,2]^2
-    deff2 =  reg_se^2/data.frame(mn_srs)[,2]^2
-    deinv2 = 1 / deff2
+    v_t_str = 1 / sum(varsib[,aux_nm])^2 * sum(varsib[,resp_nm] * varsib[,aux_nm]^2 / (varsib[,"ni"]) )
 
   }
 
-  data.frame(design="reg"
-             ,name=name
-             ,resp=resp_nm
-             ,aux=as.character((formula_reg))[[3]]
-             ,n=nrow(x)
-             ,n_strata=NA
-             ,rsq=rsq2
-             ,deff=deff2
-             ,deinv=deinv2
-             ,mean_srs=data.frame(mn_srs)[,1]
-             ,mean_other=pd_reg$fit
-             ,se_srs=data.frame(mn_srs)[,2]
-             ,se_other=reg_se
-             ,rmse_srs=data.frame(mn_srs)[,2]*sqrt(nrow(x))
-             ,rmse_other=reg_se*sqrt(nrow(x))
-  )
-}
+  if(var_type[1] == "svypkg"){
 
-.str=function(x,resp_nm,aux_nm,wt_nm,ef_name,pop,N,strata_cuts,var_type){
+  }
 
+  if(var_type[1] == "bs"){
 
+  }
+
+  n=sum(ni[,"ni"])
+  se_t_str = sqrt(v_t_str)
+  se_m_str = se_t_str / N
+  rmse_str = se_m_str * sqrt(n)
+  mn_str = sum(mnsib[,resp_nm]*mnsib[,aux_nm])/sum(varsib[,aux_nm])
+  t_str = mn_str * N
 
   return(
     list(type = "stratified"
@@ -584,8 +512,8 @@ fn_reg=function(
          ,se_t = se_t_str
          ,rmse = rmse_str
          ,n = n_str
-         ,N = N_str
-         ,n_str=n_str_str
+         ,N = N
+         ,n_str=nrow(ni)
          ,n_clus=NA
     )
   )

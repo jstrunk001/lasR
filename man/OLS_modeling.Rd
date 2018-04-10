@@ -15,7 +15,7 @@
 reg_model(dat_yx, reg_obj, rank = 1, rank_by = c("bic", "rsq", "rss",
   "adjr2", "cp"), debug = FALSE, ...)
 
-lm_boot(model, y, data, n_boot = 50)
+lm_boot(model, y = NA, data = NA, n_boot = 50)
 
 many_boots(model, n_range, r_boots = 10, n_clus = 1, lm_boot, ...)
 
