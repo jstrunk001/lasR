@@ -13,8 +13,8 @@ duplicated2=function(x,type=c("all","first","last"),value=F,invert=F){
 }
 dup2=duplicated2
 
-duplicated2(c(1:15,2:7),value=F)
-dup2(c(1:15,2:7),value=F)
-
-duplicated2(c(1:15,2:7),value=T)
-dup2(c(1:15,2:7),value=T)
+# duplicated2(c(1:15,2:7),value=F)
+# dup2(c(1:15,2:7),value=F)
+#
+# duplicated2(c(1:15,2:7),value=T)
+# dup2(c(1:15,2:7),value=T)

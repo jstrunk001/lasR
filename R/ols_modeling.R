@@ -189,17 +189,25 @@
 #'@rdname OLS_modeling
    lm_boot=function(
                     model
-                    ,y
-                    ,data
+                    ,y = NA
+                    ,data = NA
                     ,n_boot=50
-
                     ){
 
       require(bootstrap)
-      if(missing(data)) data=model[["model"]]
-      if(missing(y)){
-        y=data[,1]
+
+     if(class(model) != "lm"){
+       model=lm(model,data=data)
       }
+
+      if(class(data) != "data.frame"){
+        data=model[["model"]]
+      }
+
+      if(is.na(y)){
+       y=model$model[,1]
+      }
+
 
       #functions required for crossvalidation
       theta_fit=function(x,y,model,...)update(model,data=data.frame(x,row.names=NULL))
