@@ -16,11 +16,11 @@ estimate=function(
   ,var_type=c("asym","bs","svypkg")
 ){
 
-  if(is.na(wt_nm) & !is.na(ef_nm)){
+  if(is.na(wt_nm[1]) & !is.na(ef_nm[1])){
     wt_nm="wt"
     x[,wt_nm] = 1 / x[,ef_nm]
   }
-  if(is.na(wt_nm) & is.na(ef_nm)){
+  if(is.na(wt_nm[1]) & is.na(ef_nm[1])){
     wt_nm="wt"
     x[,wt_nm] = nrow(x) / N
   }
@@ -39,7 +39,7 @@ estimate=function(
     res=.reg(x, resp_nm=resp_nm, wt_nm=wt_nm[1], reg_form=reg_form, ef_nm=ef_nm[1], pop=pop, N=N, var_type=var_type[1], type=type[1])
   }
   if(type[1]=="stratified"){
-    res=.str(x,resp_nm,aux_nm,wt_nm,ef_name,pop,N,strata_cuts,var_type[1])
+    res=.str(x, resp_nm=resp_nm, wt_nm=wt_nm[1], ef_nm=ef_nm[1], strata_nm=strata_nm, pop=pop, N=N, var_type=var_type[1], type=type[1])
   }
   if(type[1]=="two-stage"){
     res=.ts(x,resp_nm,aux_nm,wt_nm,ef_name,pop,N,strata_cuts,var_type[1])
@@ -260,13 +260,24 @@ if(F){
 
   c(reg_mn=e6a$mean, pop_mn=mean(p6$pop$y),  diff_mn = mean(p6$pop$y) - e6a$mean)
   c(reg_mn=e6b$mean, pop_mn=mean(p6$pop$y),  diff_mn = mean(p6$pop$y) - e6b$mean)
+
+
+  plot()
+
+
 }
 
 #stratification
 if(F){
 
-
-  }
+  p10=pop_test(type=c("stratified"),wt="equal")
+  pop_Ni = aggregate( x ~ str , data=p10$pop , FUN = length)
+  e10a=estimate(x=p10$s,resp_nm="y",wt_nm="wt",strata_nm="str", pop = pop_Ni ,N=nrow(p10$pop),type="stratified" ,var_type="asym")
+  e10b=estimate(x=p10$s,resp_nm="y",wt_nm="wt",strata_nm="str", pop = pop_Ni ,N=nrow(p10$pop),type="stratified" ,var_type="svypkg")
+  #e10c=estimate(x=p10$s,resp_nm="y",wt_nm="wt",strata_nm="str", pop = pop_Ni ,N=nrow(p10$pop),type="stratified" ,var_type="bs")
+  c(str_mn=e10a$mean, pop_mn=mean(p10$pop$y),  diff_mn = mean(p10$pop$y) - e10a$mean)
+  c(str_mn=e10b$mean, pop_mn=mean(p10$pop$y),  diff_mn = mean(p10$pop$y) - e10b$mean)
+}
 
 .summary=function(res,res0){
 
@@ -451,11 +462,18 @@ if(F){
 }
 
 
-.str=function(x,resp_nm,strata_nm,wt_nm,ef_name,pop,N,var_type){
+.str=function(x,resp_nm,strata_nm,wt_nm,ef_nm,pop,N,type,var_type){
+
+
+
+  if(class(pop) != "data.frame") stop("pop should be a 2 column data frame with strata names and strata sizes: data.frame(str=c(1,3,4,5),Ni=c(500,5000,500,5000) ) ")
+  if(names(pop)[1] != strata_nm) stop("pop should be a 2 column data frame with strata names and strata sizes: data.frame(str=c(1,3,4,5),Ni=c(500,5000,500,5000) ) ")
+  Ni_nm = names(pop)[2]
 
   form1 = as.formula(paste(resp_nm,"~",strata_nm))
   ni = aggregate(form1, data=x, FUN=length )
   names(ni)[2]="ni"
+  n=sum(ni[,"ni"])
 
   if(var_type[1] == "asym"){
 
@@ -475,28 +493,40 @@ if(F){
       }
 
     }
+
     varsib = merge(merge(pop,varsi,by=strata_nm),ni,by=strata_nm)
     varsib$sst = varsib[, resp_nm ] * (varsib[, "ni" ] - 1)
     mnsib = merge(merge(pop,mnsi,by=strata_nm),ni,by=strata_nm)
+    t_str = sum(mnsib[,resp_nm]*mnsib[,Ni_nm])
+    mn_str = t_str / N
 
-    v_t_str = 1 / sum(varsib[,aux_nm])^2 * sum(varsib[,resp_nm] * varsib[,aux_nm]^2 / (varsib[,"ni"]) )
+    v_t_str = sum(varsib[,resp_nm] * varsib[,Ni_nm]^2 / (varsib[,"ni"]) )
 
   }
 
   if(var_type[1] == "svypkg"){
 
+    form_str=as.formula(paste("~",strata_nm))
+    form_y=as.formula(paste("~",resp_nm))
+    svy_str = svydesign(ids=~1, strata=form_str, data=x, weights = x[, wt_nm] / n )
+    t_svy = data.frame(svytotal(form_y,svy_str))
+    v_t_str = t_svy[,2]^2
+    t_str = t_svy[,1]
+
   }
 
   if(var_type[1] == "bs"){
 
+    stop("Bootstrap estimator not yet implemented for \"stratified\" design")
+
   }
 
-  n=sum(ni[,"ni"])
+
+  mn_str = t_str / N
   se_t_str = sqrt(v_t_str)
   se_m_str = se_t_str / N
   rmse_str = se_m_str * sqrt(n)
-  mn_str = sum(mnsib[,resp_nm]*mnsib[,aux_nm])/sum(varsib[,aux_nm])
-  t_str = mn_str * N
+  n_str = nrow( n )
 
   return(
     list(type = "stratified"
@@ -505,7 +535,7 @@ if(F){
          ,wt_nm = wt_nm
          ,ef_nm = ef_nm
          ,su_nm = NA
-         ,formula = form_str
+         ,formula = paste(resp_nm,"~",strata_nm)
          ,mean = mn_str
          ,total = t_str
          ,se_m = se_m_str
