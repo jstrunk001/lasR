@@ -22,18 +22,18 @@ estimate=function(
   }
   if(is.na(wt_nm[1]) & is.na(ef_nm[1])){
     wt_nm="wt"
-    x[,wt_nm] = nrow(x) / N
+    x[,wt_nm] = N
   }
   warning("Multi-stage Not Yet Implemented")
 
   if(length(resp_nm) > 1){stop("1 response at this time")}
 
   #always compute ht-srs
-  res0=.ht(x=x,resp_nm=resp_nm,wt_nm=wt_nm[1],ef_nm=ef_nm[1],N=N,var_type=var_type[1])
+  res0=.rand(x=x,resp_nm=resp_nm,wt_nm=wt_nm[1],ef_nm=ef_nm[1],N=N,var_type=var_type[1])
 
   #compute estimates
   if(type[1]=="ht"){
-    res=.ht(x, resp_nm=resp_nm, wt_nm=wt_nm[1], ef_nm=ef_nm[1], N=N, var_type=var_type[1], type=type[1])
+    res=.rand(x, resp_nm=resp_nm, wt_nm=wt_nm[1], ef_nm=ef_nm[1], N=N, var_type=var_type[1], type=type[1])
   }
   if(type[1]=="regression"){
     res=.reg(x, resp_nm=resp_nm, wt_nm=wt_nm[1], reg_form=reg_form, ef_nm=ef_nm[1], pop=pop, N=N, var_type=var_type[1], type=type[1])
@@ -237,6 +237,14 @@ if(F){
   )
   ei
 
+  test_s=p3$s
+  test_s$wt = 2 * p3$s$wt
+  p3$s$wt - test_s$wt
+  estimate(x=p3$s,resp_nm="y",wt_nm="wt",N=nrow(p3$pop),var_type="asym")
+  estimate(x=test_s,resp_nm="y",wt_nm="wt",N=nrow(p3$pop),var_type="asym")
+
+  estimate(x=p3$s,resp_nm="y",wt_nm="wt",N=nrow(p3$pop),var_type="svypkg")
+  estimate(x=test_s,resp_nm="y",wt_nm="wt",N=nrow(p3$pop),var_type="svypkg")
 
   e_avg=apply(ei[,-c(1:7)],2,mean)
   round(e_avg,3)
@@ -314,17 +322,20 @@ if(F){
 }
 
 #
-.ht=function(x,resp_nm,wt_nm,ef_nm,pop,N,type,var_type,n_bs=400){
+.rand=function(x,resp_nm,wt_nm,ef_nm,pop,N,type,var_type,n_bs=400){
 
   require(survey)
-  n=nrow(x)
-  t_rs = sum(x[,resp_nm] * x[,wt_nm] ) / n
-  mn_rs = t_rs / N
+  n = nrow(x)
 
   if(var_type[1]=="asym"){
-    #hansen-herwitz variance estimator
 
-    v_t_rs = var(x[,resp_nm] * x[,wt_nm] ) / n
+    #match weights to estimator
+    x[, wt_nm] = x[, wt_nm] * (N) / mean(x[, wt_nm])
+
+    #hansen-herwitz estimator
+    v_t_rs = var(x[,resp_nm] * x[,wt_nm]) / n
+    t_rs = sum(x[,resp_nm] * x[,wt_nm] ) / n
+
   }
 
   if(var_type[1]=="bs"){
@@ -341,19 +352,24 @@ if(F){
   }
   if(var_type[1]=="svypkg"){
 
-    svy_srs = svydesign(ids=~1, data=x, weights = x[, wt_nm] )
+    #match weights to estimator
+    x[, wt_nm] = x[, wt_nm] * (N / n) / mean(x[, wt_nm])
+
+    #use survey package
+    svy_srs = svydesign(ids=~1, data=x, weights = x[, wt_nm])
     form_svy=as.formula(paste(resp_nm, " ~ 1" ))
-    t_svy=data.frame(svytotal(form_svy,svy_srs))/n
+    t_svy=data.frame(svytotal(form_svy,svy_srs))
     v_t_rs = t_svy[,2]^2
     t_rs = t_svy[,1]
 
 
   }
 
+  #derivative calculations
+  mn_rs = t_rs / N
   se_t_rs = sqrt(v_t_rs)
   se_m_rs = se_t_rs / N
   rmse_rs = se_m_rs * sqrt(n)
-  mn_rs = t_rs / N
 
   return(
     list(type = "ht-srs"
@@ -375,6 +391,8 @@ if(F){
     )
   )
 }
+
+
 
 .reg=function(x,resp_nm,wt_nm,ef_nm,reg_form,pop,N,type,var_type){
 
@@ -446,7 +464,7 @@ if(F){
          ,wt_nm = wt_nm
          ,ef_nm = ef_nm
          ,su_nm = NA
-         ,formula = NA
+         ,formula = format(reg_form)
          ,mean = mn_reg
          ,total = t_reg
          ,se_m = se_m_reg
@@ -464,6 +482,7 @@ if(F){
 
 .str=function(x,resp_nm,strata_nm,wt_nm,ef_nm,pop,N,type,var_type){
 
+  require("plyr")
 
 
   if(class(pop) != "data.frame") stop("pop should be a 2 column data frame with strata names and strata sizes: data.frame(str=c(1,3,4,5),Ni=c(500,5000,500,5000) ) ")
@@ -474,33 +493,62 @@ if(F){
   ni = aggregate(form1, data=x, FUN=length )
   names(ni)[2]="ni"
   n=sum(ni[,"ni"])
+  pop_in=merge(pop,ni,by=strata_nm)
+
+  #merge strata
+  #fix cases of too few observations to compute strata variance
+  if(sum(ni[,"ni"]<2)>0){
+
+    warning("Strata Merged due to insufficient ni ( < 2 )")
+
+    has_one=which(ni[,"ni"]<2)
+    has_more=which(ni[,"ni"]>2)
+
+    for(i in 1:length(has_one)){
+
+      x_which_i = x[,strata_nm] == ni[has_one[i],strata_nm]
+      new_str = ni[has_more[which.min(abs(has_one-has_more))],strata_nm]
+      x[x_which_i,strata_nm] = new_str
+
+      pop_which_i = pop[,strata_nm] == ni[has_one[i],strata_nm]
+      pop_which_new = pop[,strata_nm] == new_str
+      pop[pop_which_new,Ni_nm] = pop[pop_which_i,Ni_nm] + pop[pop_which_new,Ni_nm]
+      #pop = pop[!pop_which_i,]
+    }
+
+    ni = aggregate(form1, data=x, FUN=length )
+    names(ni)[2] = "ni"
+
+  }
+
 
   if(var_type[1] == "asym"){
 
-    varsi = aggregate(form1,data=x,FUN=var )
-    sdi = aggregate(form1,data=x,FUN=sd )
-    mnsi = aggregate(form1,data=x,FUN=mean )
-    sst = aggregate(form1,data=x,FUN=function(x,...) c(sst=var(x)*(length(x)-1)) )
+    spl_x=split(x,x[,strata_nm])
+    Ni_mt = pop[match(names(spl_x),pop[,strata_nm]),]
+    spl_Ni=split(Ni_mt[,Ni_nm],Ni_mt[,strata_nm])
 
-    #fix cases of too few observations to compute strata variance
-    if(sum(ni[,"ni"]<2)>0){
+    #push variance estimation to .rand function for each stratum
+    vars_str = rbind.fill(mapply(estimate,spl_x,N=spl_Ni,MoreArgs=list(resp_nm=resp_nm,wt_nm=wt_nm,var_type=var_type),SIMPLIFY = F))
+    v_t_str = sum(vars_str$se_t^2)
+    t_str = sum(vars_str$total)
 
-      has_one=which(ni[,"ni"]<2)
-      has_more=which(ni[,"ni"]>2)
+    #old variance estimation approach - compute everything locally
+    if(F){
+      varsi = aggregate(form1,data=x,FUN=var )
+      sdi = aggregate(form1,data=x,FUN=sd )
+      mnsi = aggregate(form1,data=x,FUN=mean )
+      sst = aggregate(form1,data=x,FUN=function(x,...) c(sst=var(x)*(length(x)-1)) )
 
-      for(i in 1:length(has_one)){
-        varsi[has_one[i],resp_nm] = varsi[has_more[which.min(abs(has_one-has_more))],resp_nm]
-      }
+      varsib = merge(merge(pop,varsi,by=strata_nm),ni,by=strata_nm)
+      varsib$sst = varsib[, resp_nm ] * (varsib[, "ni" ] - 1)
+      mnsib = merge(merge(pop,mnsi,by=strata_nm),ni,by=strata_nm)
+      t_str = sum(mnsib[,resp_nm]*mnsib[,Ni_nm])
+      mn_str = t_str / N
 
+      v_t_str = sum(varsib[,resp_nm] * varsib[,Ni_nm]^2 / (varsib[,"ni"]) )
+      v_m_str = 1/ (varsib[,Ni_nm])^2 * sum(varsib[,resp_nm] * varsib[,Ni_nm]^2 / (varsib[,"ni"]) )
     }
-
-    varsib = merge(merge(pop,varsi,by=strata_nm),ni,by=strata_nm)
-    varsib$sst = varsib[, resp_nm ] * (varsib[, "ni" ] - 1)
-    mnsib = merge(merge(pop,mnsi,by=strata_nm),ni,by=strata_nm)
-    t_str = sum(mnsib[,resp_nm]*mnsib[,Ni_nm])
-    mn_str = t_str / N
-
-    v_t_str = sum(varsib[,resp_nm] * varsib[,Ni_nm]^2 / (varsib[,"ni"]) )
 
   }
 
@@ -520,7 +568,6 @@ if(F){
     stop("Bootstrap estimator not yet implemented for \"stratified\" design")
 
   }
-
 
   mn_str = t_str / N
   se_t_str = sqrt(v_t_str)
