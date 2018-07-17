@@ -232,7 +232,10 @@ estimate=function(
     #pd_m = data.frame(predict(svy_reg , newdata= pop / N,deff=T))
 
     form_y=as.formula(paste("~",resp_nm))
-    cb=calibrate(svy_srs,reg_form,population =  pop_svy)
+    cb=try(calibrate(svy_srs,reg_form,population =  pop_svy))
+    if(class(cb) == "try-error"){
+      stop(cb,"\n\n","Cause of Error: \nYou likely included an interaction in your model,but not a column for the interaction in your population totals: \ne.g. pop = data.frame( x1 = 50, x2 = 60, 'x1:x2' = 5000 ) notice the required x1:x2 column... ")
+    }
     pd_m = data.frame(svymean(form_y,cb,deff=T))
 
     v_t_reg = (N*pd_m[,2])^2
@@ -280,6 +283,8 @@ estimate=function(
 
   if(class(pop) != "data.frame") stop("pop should be a 2 column data frame with strata names and strata sizes: data.frame(str=c(1,3,4,5),Ni=c(500,5000,500,5000) ) ")
   if(names(pop)[1] != strata_nm) stop("pop should be a 2 column data frame with strata names and strata sizes: data.frame(str=c(1,3,4,5),Ni=c(500,5000,500,5000) ) ")
+
+  #get name of auxiliary attribute
   Ni_nm = names(pop)[2]
 
   form1 = as.formula(paste(resp_nm,"~",strata_nm))
