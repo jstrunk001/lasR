@@ -18,17 +18,17 @@
 #'Jacob Strunk <Jstrunk@@fs.fed.us>
 #'
 
-#'@param csv_to_sqlite
-#'@param csv_folder
-#'@param tb_summary
-#'@param tb_csv
-#'@param project
-#'@param resolution
-#'@param units
-#'@param proj4
-#'@param notes
-#'@param skip_loaded
-#'@param n_load
+#'@param db sqlite database connection
+#'@param csv_folder location of csv files
+#'@param tb_summary output name of summary table of csv files
+#'@param tb_csv table to dump csv files into
+#'@param project name of project
+#'@param resolution resolution of input data
+#'@param units unites of resolution
+#'@param proj4 proj4 string of coordinate data
+#'@param notes any relevant notes
+#'@param skip_loaded should csv files which are already loaded be skipped
+#'@param n_load max number of files to load
 #'@param use_col_classes read colClasses from first file, and apply to remaining files - big read speedup
 
 #'

@@ -21,6 +21,8 @@ run_gridmetrics(lasR_project = NA, lasR_project_polys = NA,
 
 \item{lasR_project_polys}{shape file of intersections created by lasR_project() function}
 
+\item{dir_out}{where should csv files be sent}
+
 \item{n_core}{number of corest to run process on}
 
 \item{gridmetrics_path}{where is gridmetrics.exe (FUSION)}
@@ -29,7 +31,37 @@ run_gridmetrics(lasR_project = NA, lasR_project_polys = NA,
 
 \item{cellsize}{output raster resolution}
 
-\item{existing_coms}{}
+\item{minht}{set minht for gridmetrics.ex}
+
+\item{first}{T/F use only first returns}
+
+\item{intensity}{T/F include intensity metrics}
+
+\item{outlier}{c(-5,500) range of inclusion}
+
+\item{fusion_switches}{other fusion switches as a string e.g. "/noground"}
+
+\item{xmn, xmx, ymn, ymx}{set extent for analysis}
+
+\item{fun}{a custom function if gridmetrics is not used}
+
+\item{temp}{temp folder to hold batch files for use with gridmetrics.exe}
+
+\item{fast_cache}{experimental - a high-speed temporary folder to copy las files to}
+
+\item{n_cache}{experimental - number of las files to copy to cache}
+
+\item{dir_dtm}{in case path to dtms has changed from lasR_project}
+
+\item{dir_las}{in case path to las has changed from lasR_project}
+
+\item{skip_existing}{skip tiles if they already have output csvs}
+
+\item{con}{a parallel connection, optional, function can also create parallel threads}
+
+\item{table}{output folder name}
+
+\item{existing_coms}{path to existing batch comamnds, incase processing was interrupted the first time}
 }
 \value{
 <Delete and Replace>

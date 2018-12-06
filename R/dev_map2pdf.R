@@ -120,7 +120,7 @@ map2pdf=function(pdf_out
 
 }
 
-
+if(F){
 library(raster)
 
 set.seed(55)
@@ -141,7 +141,7 @@ writeRaster(rtest,"c:\\temp\\test1gpdf_original.tif",overwrite=T)
 writeRaster(rtest,"test1",format="PDF",overwrite=T)
 
 #plot(raster("c:\\temp\\test1gpdf1.tif"))
-
+}
 
 
 #

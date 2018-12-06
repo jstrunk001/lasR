@@ -9,6 +9,28 @@ csv_to_sqlite(db, csv_folder, tb_summary = "gm_summary", tb_csv = "gm",
   notes = "", skip_loaded = T, n_load = NA, use_col_classes = T)
 }
 \arguments{
+\item{db}{sqlite database connection}
+
+\item{csv_folder}{location of csv files}
+
+\item{tb_summary}{output name of summary table of csv files}
+
+\item{tb_csv}{table to dump csv files into}
+
+\item{project}{name of project}
+
+\item{resolution}{resolution of input data}
+
+\item{units}{unites of resolution}
+
+\item{proj4}{proj4 string of coordinate data}
+
+\item{notes}{any relevant notes}
+
+\item{skip_loaded}{should csv files which are already loaded be skipped}
+
+\item{n_load}{max number of files to load}
+
 \item{use_col_classes}{read colClasses from first file, and apply to remaining files - big read speedup}
 }
 \description{

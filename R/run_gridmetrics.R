@@ -19,27 +19,27 @@
 #'
 #'@param lasR_project csv file of intersections created by lasR_project() function
 #'@param lasR_project_polys shape file of intersections created by lasR_project() function
-#'@param dir_out
+#'@param dir_out where should csv files be sent
 #'@param n_core number of corest to run process on
 #'@param gridmetrics_path where is gridmetrics.exe (FUSION)
 #'@param heightbreak Height break for cover calculation
 #'@param cellsize output raster resolution
-#'@param minht
-#'@param first
-#'@param intensity
-#'@param outlier
-#'@param fusion_switches
-#'@param xmn
-#'@param fun
-#'@param temp
-#'@param fast_cache
-#'@param n_cache
-#'@param dir_dtm
-#'@param dir_las
-#'@param skip_existing
-#'@param con
-#'@param table
-#'@param existing_coms
+#'@param minht set minht for gridmetrics.ex
+#'@param first T/F use only first returns
+#'@param intensity T/F include intensity metrics
+#'@param outlier c(-5,500) range of inclusion
+#'@param fusion_switches other fusion switches as a string e.g. "/noground"
+#'@param xmn,xmx,ymn,ymx set extent for analysis
+#'@param fun a custom function if gridmetrics is not used
+#'@param temp temp folder to hold batch files for use with gridmetrics.exe
+#'@param fast_cache experimental - a high-speed temporary folder to copy las files to
+#'@param n_cache experimental - number of las files to copy to cache
+#'@param dir_dtm in case path to dtms has changed from lasR_project
+#'@param dir_las in case path to las has changed from lasR_project
+#'@param skip_existing skip tiles if they already have output csvs
+#'@param con a parallel connection, optional, function can also create parallel threads
+#'@param table output folder name
+#'@param existing_coms path to existing batch comamnds, incase processing was interrupted the first time
 #'
 #'@return
 #'  <Delete and Replace>
