@@ -298,8 +298,6 @@ clip_plots=function(
     require(lasR)
     require(plyr)
 
-
-
     las_files_in = grep("[.]la.$",as.character(unlist(strsplit(x@data[,"las_file"],",")[1])),value=T)
     dtm_files_in = unlist(strsplit(x@data[,"dtm_file"],",")[1])
     las_in=readLAS(files = las_files_in)
@@ -342,15 +340,6 @@ clip_plots=function(
 
     if(height) las_hts = lasnormalize(las_poly, dtm_poly)
     if(!height) las_hts = las_poly
-
-    if(class(las_hts)!="LAS"){
-      skip_file=file.path(dir_out,"skip",paste(id,"_",x@data[1,id],".las",sep=""))
-      file.create(skip_file)
-      return()
-    }
-
-
-
 
     #write to file
     if(!dir.exists(dir_out)) dir.create(dir_out)
