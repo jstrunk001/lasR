@@ -125,7 +125,7 @@ scan_las=function(
     headers[,"file_name"]=basename(files_las)
     headers[,"file_path"]=files_las
     headers[,"load_date"]=proc_date
-    headers[,"notes"]=notes
+    headers[,"notes"]=paste(notes,collapse="T")
 
     if(nrow(las_id_df) > 0) las_id_df=rbind(headers,las_id_df[,names(headers)])
     else las_id_df = headers
@@ -141,7 +141,6 @@ scan_las=function(
 
     polys_rds=paste(project_id_folder,"las_polys.rds",sep="")
     polys_shp=paste(project_id_folder,"las_polys.shp",sep="")
-
     #las_id_df[is.na(las_id_df[,c("max_y")]),][1:5,]
     bad_files=apply(las_id_df[,c("min_x","max_x","min_y","max_y")],1,function(x)any(is.na(x)) )
     las_id_df1=las_id_df[!bad_files,]

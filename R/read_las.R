@@ -66,7 +66,7 @@ read_header=function(paths,...){
 read_header.character=function(paths){
 
   if(length(paths)==0) stop("'path' is empty")
-  if(length(paths)==1) try(return(.read_one_header(paths)))
+  if(length(paths)==1) try(return(data.frame(t(.read_one_header(paths)))))
   if(length(paths) >1) try(return(.read_headers(paths)))
 
 }
