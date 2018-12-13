@@ -163,6 +163,8 @@ clip_plots=function(
     print("clip, recombine plots with data");print(Sys.time())
 
     #intersect plots with tiles
+    test = gIntersection(plot_polys_spdf,proj_polys_spdf, byid=T)
+
     proj_plot_x=gIntersects(plot_polys_spdf,proj_polys_spdf, byid=T,returnDense=F)
     proj_plot_x1=proj_plot_x[sapply(proj_plot_x,function(x)length(x)>0)]
 
@@ -187,6 +189,8 @@ clip_plots=function(
                                       )
                                   )
                            )
+
+    browser()
 
     #merge duplicate records
     dup_id=.dup2(as.character(plots_tiles[,id_field_plots]))
