@@ -152,26 +152,12 @@ print("extract dtm polygons");print(Sys.time())
 print("extract las polygons");print(Sys.time())
 
   #create dataframe from dtm and las intersections on tiles
-browser()
   tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
-  tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
-
   #sum(duplicated(tiles_las_df[,"las_file"]))
 print("create dataframe from dtm and las intersections on tiles A");print(Sys.time())
   tiles_dtm_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,dtm_file=file,stringsAsFactors=F)},ex_dtm1,names(ex_dtm1),SIMPLIFY=F)))
   #sum(duplicated(tiles_dtm_df[,"dtm_file"]))
 print("create dataframe from dtm and las intersections on tiles B");print(Sys.time())
-
-  tiles_dtm_agg=aggregate(dtm_file~tile_id,data=tiles_dtm_df,FUN=function(x){df_in=data.frame(t(x));names(df_in)=gsub("X",,names(df_in));df_in})
-
-  spl_dtm_tile = split(tiles_dtm_df$dtm_file,tiles_dtm_df$tile_id)
-  spl_las_tile = split(tiles_las_df$dtm_file,tiles_las_df$tile_id)
-
-  tiles_dtm_agg=mapply(function(x,y) data.frame(tile_id=y,t(x)),spl_dtm_tile,names(spl_dtm_tile),SIMPLIFY=F)
-  tiles_las_agg=rbind.fill(mapply(function(x,y) data.frame(tile_id=y,t(x)),spl_las_tile,names(spl_las_tile)))
-
-  tiles_dtm_agg = rbind.fill()
-
   tiles_dtm_agg=aggregate(dtm_file~tile_id,data=tiles_dtm_df,FUN=function(x)paste(unique(x),collapse=","))
   tiles_las_agg=aggregate(las_file~tile_id,data=tiles_las_df,FUN=function(x)paste(unique(x),collapse=","))
 print("create dataframe from dtm and las intersections on tiles C");print(Sys.time())
@@ -196,11 +182,13 @@ print("Merge");print(Sys.time())
   #write project to file
   #write polygons
   n_err=0
-  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent=T)
+  #write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d.gpkg", n_err+1), driver="GPKG"),silent=T)
+  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d.gpkg", n_err+1), driver="GPKG"),silent=T)
 
   if(class(write_test)=="try-error"){
-    n_err=length(list.files(project_path,"lasR_project.*shp"))
-    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent = T)
+    n_err=length(list.files(project_path,"lasR_project.*gpkg"))
+    #write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent = T)
+    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d.gpkg", n_err+1), driver="GPKG"),silent=T)
   }
   if(class(write_test)=="try-error"){
     warning("Error trying to write lasR_project geometry",write_test)

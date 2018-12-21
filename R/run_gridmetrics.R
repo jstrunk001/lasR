@@ -71,8 +71,8 @@
 run_gridmetrics=function(
 
   lasR_project=NA
-  ,lasR_project_polys=NA
-
+  #,lasR_project_polys=NA
+  ,lasR_project_gpkg=NA
   ,dir_out="c:/temp/test_project/gridmetrics"
   ,n_core=4
   ,gridmetrics_path="c:\\fusion1\\gridmetrics.exe"
@@ -133,7 +133,7 @@ run_gridmetrics=function(
   coms_out=file.path(temp,"all_commands.txt")
 
  #load lasR_project
-  if(!is.na(lasR_project) & is.na(lasR_project_polys[1])){
+  if(!is.na(lasR_project) & is.na(lasR_project_gpkg[1])){
     if(!inherits(lasR_project,"sp")){
       proj=read.csv(lasR_project)
       proj_polys0=bbox2polys(proj[,c("tile_id","mnx","mxx","mny","mxy")])
@@ -142,9 +142,13 @@ run_gridmetrics=function(
     }
     if(inherits(lasR_project,"sp")) proj_polys=lasR_project
   }
-  if(!is.na(lasR_project_polys[1])){
-    if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(dirname(lasR_project_polys),gsub("[.]shp$","",basename(lasR_project_polys)),stringsAsFactors=F)
-    if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
+  # if(!is.na(lasR_project_polys[1])){
+  #   if(!inherits(lasR_project_polys,"sp")) proj_polys=readOGR(dirname(lasR_project_polys),gsub("[.]shp$","",basename(lasR_project_polys)),stringsAsFactors=F)
+  #   if(inherits(lasR_project_polys,"sp")) proj_polys=lasR_project_polys
+  # }
+  if(!is.na(lasR_project_gpkg[1])){
+    if(!inherits(lasR_project_gpkg,"sp")) proj_polys=readOGR(lasR_project_gpkg[1],"tiles",stringsAsFactors=F)
+    if(inherits(lasR_project_gpkg,"sp")) proj_polys=lasR_project_gpkg
   }
   print("load lasR_project");print(Sys.time())
   #fix drive paths in lasR_project
