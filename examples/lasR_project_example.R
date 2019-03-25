@@ -149,3 +149,34 @@ if(F){
 #   gc();stopCluster(clus);gc()
 # }
 
+if(F){
+
+  #library(rgdal)
+  library(lasR)
+
+  # proj_area=readOGR(dsn="C:\\projects\\2017_WA_DSM_Pilot\\boundary",layer="5_counties_WASP")
+
+  lasR_project(
+    dir_las="D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\LAS"
+    ,dir_dtm="D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\GRID"
+    ,dir_project="D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\prj"
+    ,project="2009_SRS"
+    ,project_dtm="lidar"
+    ,project_las="lidar"
+    ,dtm_year="2009"
+    ,las_year="2009"
+    #,mask=proj_area
+    ,do_scan_dtms=T
+    ,do_scan_las=T
+    ,tile_size=3300
+    ,pixel_size=66
+    ,xmn=NA#561066,xmx=2805066,ymn=33066,ymx=1551066
+    ,crs=""#"+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs"
+  )
+
+  # lasR_subset("C:\\projects\\2017_WA_DSM_Pilot\\archive\\DSM_Pilot_B_lasR\\intersections.csv"
+  #             ,"C:/projects/2017_WA_DSM_Pilot/DSM_Pilot_5cnty_lasR/boundary/5_counties_WASP.shp"
+  #             ,"C:/projects/2017_WA_DSM_Pilot/DSM_Pilot_5cnty_lasR/lasR_project"
+  # )
+}
+

@@ -119,6 +119,13 @@ lasR_project=function(
   las_polys1=buffer(las_polys,pixel_size*2+1,dissolve=F);gc()
 print("buffer");print(Sys.time())
   #create processing tiles
+  if( is.na(xmn) | is.na(xmx) | is.na(ymn) | is.na(ymx)  ){
+    ext = extent(las_polys1)
+    xmn = ext@xmin
+    xmx = ext@xmax
+    ymn = ext@ymin
+    ymx = ext@ymax
+  }
   proc_rast=raster(xmn=xmn,xmx=xmx,ymn=ymn,ymx=ymx,resolution=tile_size,crs=crs);gc()
   proc_rast[]=cellsFromExtent(proc_rast,extent(proc_rast));gc()
   xy=raster::as.data.frame(proc_rast,xy=T)
@@ -152,9 +159,9 @@ print("extract dtm polygons");print(Sys.time())
 print("extract las polygons");print(Sys.time())
 
   #create dataframe from dtm and las intersections on tiles
-browser()
+
   tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
-  tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
+  #tiles_las_df=data.frame(rbindlist(mapply(function(tile_id,file){data.frame(tile_id,las_file=file,stringsAsFactors=F)},ex_las1,names(ex_las1),SIMPLIFY=F)))
 
   #sum(duplicated(tiles_las_df[,"las_file"]))
 print("create dataframe from dtm and las intersections on tiles A");print(Sys.time())
@@ -162,19 +169,10 @@ print("create dataframe from dtm and las intersections on tiles A");print(Sys.ti
   #sum(duplicated(tiles_dtm_df[,"dtm_file"]))
 print("create dataframe from dtm and las intersections on tiles B");print(Sys.time())
 
-  tiles_dtm_agg=aggregate(dtm_file~tile_id,data=tiles_dtm_df,FUN=function(x){df_in=data.frame(t(x));names(df_in)=gsub("X",,names(df_in));df_in})
-
-  spl_dtm_tile = split(tiles_dtm_df$dtm_file,tiles_dtm_df$tile_id)
-  spl_las_tile = split(tiles_las_df$dtm_file,tiles_las_df$tile_id)
-
-  tiles_dtm_agg=mapply(function(x,y) data.frame(tile_id=y,t(x)),spl_dtm_tile,names(spl_dtm_tile),SIMPLIFY=F)
-  tiles_las_agg=rbind.fill(mapply(function(x,y) data.frame(tile_id=y,t(x)),spl_las_tile,names(spl_las_tile)))
-
-  tiles_dtm_agg = rbind.fill()
-
   tiles_dtm_agg=aggregate(dtm_file~tile_id,data=tiles_dtm_df,FUN=function(x)paste(unique(x),collapse=","))
   tiles_las_agg=aggregate(las_file~tile_id,data=tiles_las_df,FUN=function(x)paste(unique(x),collapse=","))
 print("create dataframe from dtm and las intersections on tiles C");print(Sys.time())
+
   tiles_las_dtm=merge(tiles_las_agg,tiles_dtm_agg,by="tile_id")
 print("Merge");print(Sys.time())
   #add tile bounds

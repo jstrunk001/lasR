@@ -69,7 +69,6 @@
 
 
 run_gridmetrics=function(
-
   lasR_project=NA
   #,lasR_project_polys=NA
   ,lasR_project_gpkg=NA
