@@ -190,7 +190,6 @@ clip_plots=function(
                                   )
                            )
 
-    browser()
 
     #merge duplicate records
     dup_id=.dup2(as.character(plots_tiles[,id_field_plots]))
@@ -216,6 +215,7 @@ clip_plots=function(
 
   }
 
+  print("fix paths");print(Sys.time())
   #fix drive paths in lasR_project
   if(!is.na(dir_dtm)) plot_polys_merge@data[,"dtm_file"]=unlist(lapply(plot_polys_merge@data[,"dtm_file"],function(...,dir_dtm)paste(file.path(dir_dtm,basename(strsplit(...,",")[[1]])),collapse=","),dir_dtm=dir_dtm))
   if(!is.na(dir_las)) plot_polys_merge@data[,"las_file"]=unlist(lapply(plot_polys_merge@data[,"las_file"],function(...,dir_las)paste(file.path(dir_las,basename(strsplit(...,",")[[1]])),collapse=","),dir_las=dir_las))
@@ -227,6 +227,7 @@ clip_plots=function(
     plot(plot_polys_merge,border="red",add=T,lwd=10)
   }
 
+  print("skip existing");print(Sys.time())
   #skip existing files
   if(skip_existing){
     files_out_dir=unlist(c(list.files(dir_out,pattern="[.]las"),list.files(dir_skip,pattern="[.]las")))
@@ -234,14 +235,17 @@ clip_plots=function(
     plot_polys_merge=plot_polys_merge[!out_nms %in% files_out_dir,]
   }
 
+  print("write shapefile");print(Sys.time())
   #write shapefile of intersections
   dir_overlap=file.path(dir_out,"plot_tile_overlap")
   if(!dir.exists(dir_overlap)) dir.create(dir_overlap)
   if(!file.exists(paste(dir_overlap,"plot_merge_tiles.shp",sep="\\"))) writeOGR(plot_polys_merge,dir_overlap,"plot_merge_tiles", driver="ESRI Shapefile")
 
+  print("split polygons");print(Sys.time())
   #clip points
   spl_plots=sp::split(plot_polys_merge,1:nrow(plot_polys_merge))
 
+  print("initiate clipping");print(Sys.time())
   if(n_core>1){
     clus=makeCluster(n_core)
     clusterEvalQ(clus,library(lasR))
@@ -249,7 +253,9 @@ clip_plots=function(
     stopCluster(clus)
   }
   if(n_core<2){
+
     lapply(spl_plots,.try_clip_plots,dir_out = dir_out,height=height,id=id_field_plots,fix_dsm_bug=fix_dsm_bug)
+
   }
 
   #.try_clip_plots(spl_plots[[2]],dir_out = dir_out)
@@ -302,8 +308,9 @@ clip_plots=function(
     require(lasR)
     require(plyr)
 
+    print()
     las_files_in = grep("[.]la.$",as.character(unlist(strsplit(x@data[,"las_file"],",")[1])),value=T)
-    dtm_files_in = unlist(strsplit(x@data[,"dtm_file"],",")[1])
+    dtm_files_in = grep("[.].{,4}$",unlist(strsplit(x@data[,"dtm_file"],",")[1]),value=T)
     las_in=readLAS(files = las_files_in)
     if(fix_dsm_bug) las_in@header@PHB['Header Size'] = 235
     dtm_in=read_dtm(dtm_files_in)
@@ -341,7 +348,6 @@ clip_plots=function(
       file.create(skip_file)
       return()
     }
-
     if(height) las_hts = lasnormalize(las_poly, dtm_poly)
     if(!height) las_hts = las_poly
 
@@ -349,13 +355,12 @@ clip_plots=function(
     if(!dir.exists(dir_out)) dir.create(dir_out)
 
     if(class(las_hts)=="LAS"){
-      out_file_i=file.path(dir_out,paste(id,"_",x@data[1,id],".las",sep=""))
+      out_file_i=file.path(dir_out,paste(id,"_",x@data[1,id],".laz",sep=""))
       err=try(writeLAS(las_hts,out_file_i))
     }else{
       skip_file=file.path(dir_out,"skip",paste(id,"_",x@data[1,id],".las",sep=""))
       file.create(skip_file)
     }
-
 
   }
 

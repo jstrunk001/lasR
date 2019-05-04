@@ -77,20 +77,42 @@
    #use FUSION to clip
    if(F){
 
+     library(lasR)
      library(rgdal)
-     library(plyr)
+     library(rgeos)
      library(raster)
+     library(maptools)
+     library(helpers)
 
-     plots0 = readOGR("D:\\Box\\RMA~VMaRS~Team\\SRS_2009\\SRS_Plot_locations_FINAL\\LIDAR_Plot_NAD83_UTM_Z17N_2009.shp",stringsAsFactors=F)
-     dat1 = plots0@data
-     dat1[,c("minx","miny","maxx","maxy")] = rbind.fill(apply(dat1[,c("x","y")],1,function(z,r=100) data.frame(minx=z[1]-100,miny=z[2]-100,maxx=z[1]+100,maxy=z[2]+100)))
-     dat1[,c("outf")] = paste("D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\plot_clips\\plot_",dat1[,c("Plot")],sep="")
 
-     dat1[,c("outf")] = paste("D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\plot_clips\\plot_",dat1[,c("Plot")],sep="")
-     write.csv(dat1[,c("outf","minx","miny","maxx","maxy")],"D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\clipdata_input.txt",row.names = F,col.names = F)
+     plots0 = readOGR("E:\\SavannahRiverSite\\Field Measurements\\SRS_Plot_locations_FINAL\\LIDAR_Plot_NAD83_UTM_Z17N_2009.shp",stringsAsFactors=F)
+     plots1=gBuffer(plots0,width=100,byid=T)
 
-     shell("C:\\FUSION\\clipdata.exe /height /dtm:D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\GRID\\*.dtm D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\LAS\\*.las D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\clipdata_input.txt")
+     proj1=readOGR("E:\\SavannahRiverSite\\prj\\2009_SRS\\lasR_project001.shp",stringsAsFactors=F)
 
-     shell("d: && cd D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\GRID\\ && C:\\FUSION\\clipdata.exe /height /dtm:*.dtm D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\LAS\\*.las D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\clipdata_input.txt",intern = T,wait=T)
+     clip_plots(plot_polys = plots1
+                ,lasR_project_polys = proj1
+                ,dir_out = "E:\\SavannahRiverSite\\plot_clips\\"
+                ,n_core = 4
+                ,id_field_plot = "Plot"
+                ,height=T
+                ,dir_las="E:\\SavannahRiverSite\\LAS"
+                ,dir_dtm="E:\\SavannahRiverSite\\GRID"
+     )
 
-    }
+
+
+
+    #  dat1 = plots0@data
+    #  dat1[,c("minx","miny","maxx","maxy")] = rbind.fill(apply(dat1[,c("x","y")],1,function(z,r=100) data.frame(minx=z[1]-100,miny=z[2]-100,maxx=z[1]+100,maxy=z[2]+100)))
+    #  dat1[,c("outf")] = paste("D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\plot_clips\\plot_",dat1[,c("Plot")],sep="")
+    #
+    #  dat1[,c("outf")] = paste("D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\plot_clips\\plot_",dat1[,c("Plot")],sep="")
+    #  write.csv(dat1[,c("outf","minx","miny","maxx","maxy")],"D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\clipdata_input.txt",row.names = F,col.names = F)
+    #
+    #  shell("C:\\FUSION\\clipdata.exe /height /dtm:D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\GRID\\*.dtm D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\LAS\\*.las D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\clipdata_input.txt")
+    #
+    #  shell("d: && cd D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\GRID\\ && C:\\FUSION\\clipdata.exe /height /dtm:*.dtm D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\LAS\\*.las D:\\Box\\rs_share\\2009_SRS_lidar\\SavannahRiverSite\\clipdata_input.txt",intern = T,wait=T)
+    #
+    #
+     }

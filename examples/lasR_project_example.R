@@ -166,7 +166,7 @@ if(F){
     ,dtm_year="2009"
     ,las_year="2009"
     #,mask=proj_area
-    ,do_scan_dtms=T
+    ,do_scan_dtms=F
     ,do_scan_las=T
     ,tile_size=3300
     ,pixel_size=66

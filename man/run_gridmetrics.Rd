@@ -4,7 +4,7 @@
 \alias{run_gridmetrics}
 \title{run gridmetrics across a project}
 \usage{
-run_gridmetrics(lasR_project = NA, lasR_project_polys = NA,
+run_gridmetrics(lasR_project = NA, lasR_project_gpkg = NA,
   dir_out = "c:/temp/test_project/gridmetrics", n_core = 4,
   gridmetrics_path = "c:\\\\fusion1\\\\gridmetrics.exe", heightbreak = 6,
   cellsize = 66, minht = 6, first = T, intensity = F, outlier = c(-5,
@@ -18,8 +18,6 @@ run_gridmetrics(lasR_project = NA, lasR_project_polys = NA,
 }
 \arguments{
 \item{lasR_project}{csv file of intersections created by lasR_project() function}
-
-\item{lasR_project_polys}{shape file of intersections created by lasR_project() function}
 
 \item{dir_out}{where should csv files be sent}
 
@@ -62,6 +60,8 @@ run_gridmetrics(lasR_project = NA, lasR_project_polys = NA,
 \item{table}{output folder name}
 
 \item{existing_coms}{path to existing batch comamnds, incase processing was interrupted the first time}
+
+\item{lasR_project_polys}{shape file of intersections created by lasR_project() function}
 }
 \value{
 <Delete and Replace>
