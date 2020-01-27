@@ -2,7 +2,6 @@
 % Please edit documentation in R/dev_lasR_project.R, R/lasR_project.R
 \name{lasR_project}
 \alias{lasR_project}
-\alias{lasR_project}
 \title{Build Lidar / DEM tiling project}
 \usage{
 lasR_project(dir_las = NA, dir_dtm = NA,
@@ -149,13 +148,14 @@ Revision History
 
 
 }
-\seealso{
-\code{\link{scan_dtm}}\cr \code{\link{scan_las}}\cr
-
-\code{\link{scan_dtm}}\cr \code{\link{scan_las}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{scan_dtm}}\cr \code{\link{scan_las}}\cr
+
+\code{\link{scan_dtm}}\cr \code{\link{scan_las}}\cr
+}
+

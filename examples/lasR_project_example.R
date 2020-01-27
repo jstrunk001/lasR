@@ -42,7 +42,7 @@ if(F){
 
     project="2015_naip"
     ,project_year=2015
-    ,dir_las ="D:\\projects\\2015_hood_canal_lidar\\laz"
+    ,dir_las ="G:\\projects\\2015_NAIP\\laz\\"
     #,dir_las ="D:\\test"
 
     )

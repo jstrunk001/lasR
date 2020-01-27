@@ -15,6 +15,29 @@ isNA <- function(x){
   is.atomic(x) && length(x) == 1 && is.na(x)
 }
 
+clean_path=function(
+  path
+  ,backslash=T
+  ,force_endslash=F
+){
+
+  path_in=unlist(path)
+
+  #fix paths
+  path_ok=gsub("XXXLEADINGXXX","\\\\\\\\",gsub("\\\\\\\\","\\\\",gsub("^\\\\\\\\","XXXLEADINGXXX",gsub("/","\\\\",gsub("\\\\\\\\$","",gsub("//$","",path_in))))))
+
+  #if slashcap
+  if(force_endslash) path_ok=paste(gsub("\\\\$","",path_ok),"\\",sep="")
+
+  #use forward slash
+  if(!backslash) path_ok= gsub("\\\\","/",path_ok)
+
+  #return data
+  return (path_ok)
+
+}
+backslash=function(path) clean_path(path,backslash=T)
+
 if(class(try(lidR::catalog_laxindex(),silent=T)) == "try-error") catalog_laxindex = function(ctg){
   stopifnot(is(ctg, "LAScatalog"))
 
@@ -34,7 +57,7 @@ if(class(try(lidR::catalog_laxindex(),silent=T)) == "try-error") catalog_laxinde
   return(invisible())
 }
 
-.clipFusion=function(
+clipFusion=function(
   idxyd=NA #id,x,y,diameter
   ,dir_las = NA
   ,dir_dtm = NA
@@ -111,6 +134,7 @@ if(class(try(lidR::catalog_laxindex(),silent=T)) == "try-error") catalog_laxinde
   }
 
 }
+
 lasSampleCompare=function(
 
   pathClipData = "c:/fusion/clipdata.exe"
@@ -135,7 +159,7 @@ lasSampleCompare=function(
   ,sampleType = c("regular","random","hexagonal")
   ,doSteps = c("sample","clip","metrics")
   ,switchesClipdata = "" #optional switches to FUSION's polyclip.exe
-  ,SwitchesSloudmetrics = ""  #optional switches to FUSION's cloudmetrics.exe
+  ,switchesCloudmetrics = ""  #optional switches to FUSION's cloudmetrics.exe
   ,procMethod = c("lidR","FUSION")
   ,nCore = 2
   ,temp = "c:\\temp\\clipdata"
@@ -162,8 +186,8 @@ lasSampleCompare=function(
   hasPathDTMB = !is.na(pathDTMB)
   hasSample = !is.na(samplePoly)
   hasExt = !isNA(extentSample[1])
-  hasPolySw = nchar(polyclip_switches) > 0
-  hasCMSw = nchar(cloudmetrics_switches) > 0
+  hasClipSw = nchar(switchesClipdata) > 0
+  hasCMSw = nchar(switchesCloudmetrics) > 0
   hasShape = sampleShape[1] %in% c("circle","square","round")
   hasType = sampleType %in% c("regular","random","hexagonal")
 
@@ -431,9 +455,6 @@ lasSampleCompare=function(
 
 
   }
-  browser()
-
-
 
   if(procMethod == "FUSION"){
 
@@ -445,46 +466,95 @@ lasSampleCompare=function(
       if(hasPathDTMA) swClipdata = "/height /shape:0"
       if(!hasPathDTMA) swClipdata = "/shape:0"
     }
-    if(hasPathA){
 
+    if(hasPathA){
+      gc()
     #clip first radius
-      .clipFusion(
-        idxyd=data.frame(id=1:nrow(sInA),coordinates((sInA)),2*radii_in[1])
+      clipFusion(
+        idxyd=data.frame(id=paste("clip",1:nrow(sInA@coords),sep="_"),coordinates((sInA)),2*radii_in[1])
         ,dir_las = pathLasA
         ,dir_dtm = pathDTMA
         ,dir_clipdata=pathClipData
         ,dir_out = pathsOutA_in[1]
         ,out_f = ".laz"
-        ,clipdata_switches=c("/height /shape:1","")[1]
+        ,clipdata_switches=swClipdata
         ,n_core = nCore
         ,temp = temp
         ,run=T
       )
+      closeAllConnections()
+      gc()
+
+      #filter off height switch for sub-clips -> already height if desired
+      swClipdata = gsub("^[ ]","",gsub("/height","",swClipdata))
 
       if(length(radii_in[1]) > 0){
-        lidR::opt_cores(ctgB_clip1) <- nCore
-
         for(j in 2:length(radii_in) ){
-          plot(ctgB_clip1)
-          lidR::opt_output_files(ctgB_clip1) <- paste0(pathsOutB_in[j], "/clip_{ID}")
-
-          if(sampleShape == "circle") lCtgs[[j]] = lidR::lasclipCircle(ctgB_clip1,sInB@coords[1:20,1],sInB@coords[1:20,2],radii_in[j])
-          if(sampleShape == "square") lCtgs[[j]] = lidR::lasclipRectangle(ctgB_clip1
-                                                                          , sInB@coords[1:20,1] - radii_in[1]
-                                                                          , sInB@coords[1:20,2] - radii_in[1]
-                                                                          , sInB@coords[1:20,1] + radii_in[1]
-                                                                          , sInB@coords[1:20,2] + radii_in[1]
+          clipFusion(
+            idxyd=data.frame(id=paste("clip",1:nrow(sInA@coords),sep="_"),coordinates((sInA)),2*radii_in[j])
+            ,dir_las = pathsOutA_in[1] #subsample from original clips
+            ,dir_dtm = NA
+            ,dir_clipdata=pathClipData
+            ,dir_out = pathsOutA_in[j]
+            ,out_f = ".laz"
+            ,clipdata_switches=swClipdata
+            ,n_core = nCore
+            ,temp = temp
+            ,run=T
           )
           closeAllConnections()
-
+          gc()
         }
       }
 
+    }
+    if(hasPathB){
+      gc()
+      #clip first radius
+      clipFusion(
+        idxyd=data.frame(id=1:nrow(sInB@coords),coordinates((sInB)),2*radii_in[1])
+        ,dir_las = pathLasB
+        ,dir_dtm = pathDTMB
+        ,dir_clipdata=pathClipData
+        ,dir_out = pathsOutB_in[1]
+        ,out_f = ".laz"
+        ,clipdata_switches=swClipdata
+        ,n_core = nCore
+        ,temp = temp
+        ,run=T
+      )
+      closeAllConnections()
+      gc()
+
+      #filter off height switch for sub-clips -> already height if desired
+      swClipdata = gsub("^[ ]","",gsub("/height","",swClipdata))
+
+      if(length(radii_in[1]) > 0){
+        for(j in 2:length(radii_in) ){
+          clipFusion(
+            idxyd=data.frame(id=paste("clip",1:nrow(sInB@coords),sep="_"),coordinates((sInB)),2*radii_in[j])
+            ,dir_las = pathsOutB_in[1] #subsample from original clips
+            ,dir_dtm = NA
+            ,dir_clipdata=pathClipData
+            ,dir_out = pathsOutB_in[j]
+            ,out_f = ".laz"
+            ,clipdata_switches=swClipdata
+            ,n_core = nCore
+            ,temp = temp
+            ,run=T
+          )
+          closeAllConnections()
+          gc()
+        }
+      }
+
+    }
 
   }
 
 
 }
+
 
 if( F){
   library(rgdal)
@@ -499,7 +569,9 @@ if( F){
   saveRDS(poly2a,"D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las/buffer5_las_polys.rds" )
 
 }
-if( !"poly1" %in% ls() ){
+if(F){
+#if( !"poly1" %in% ls() ){
+
   library(rgdal)
   library(rgeos)
   poly1a=readRDS("D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las/buffer5_las_polys.rds" )
@@ -507,15 +579,17 @@ if( !"poly1" %in% ls() ){
 
 }
 
-lasSampleCompare(
-  pathOutA = "d:/temp/hood_canal_test/clip3in/"
-  ,pathOutB = "d:/temp/hood_canal_test/clip6in/"
-  ,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
-  ,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
-  ,extentPolyA = poly1a
-  ,extentPolyB = poly2a
-  ,nCore = 6
-  ,nSample = 150
-)
-
+if(F){
+  lasSampleCompare(
+    pathOutA = "d:/temp/hood_canal_test/clip3in/"
+    ,pathOutB = "d:/temp/hood_canal_test/clip6in/"
+    ,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+    ,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+    ,extentPolyA = poly1a
+    ,extentPolyB = poly2a
+    ,nCore = 6
+    ,nSample = 150
+    ,procMethod = "FUSION"
+  )
+}
 

@@ -45,9 +45,10 @@ Revision History
  <Delete and Replace>
 
 }
-\seealso{
-\code{\link{scan_las}}\cr \code{\link{read_dtm}}\cr \code{\link{read_dtm_header}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{scan_las}}\cr \code{\link{read_dtm}}\cr \code{\link{read_dtm_header}}\cr
+}
+

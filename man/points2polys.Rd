@@ -28,9 +28,10 @@ Revision History
  none yet
 
 }
-\seealso{
-\code{\link{xy2FIApoly}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{xy2FIApoly}}\cr
+}
+

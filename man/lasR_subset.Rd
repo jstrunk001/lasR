@@ -39,9 +39,10 @@ Revision History
  )
 
 }
-\seealso{
-\code{\link{lasR_project}}\cr \code{\link{scan_las}}\cr \code{\link{scan_dtm}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{lasR_project}}\cr \code{\link{scan_las}}\cr \code{\link{scan_dtm}}\cr
+}
+

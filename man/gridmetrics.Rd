@@ -58,9 +58,10 @@ metrics=gridmetrics(las_files=las_files,dtm_files=dtm_files)
 head(metrics)
 
 }
-\seealso{
-\code{\link{read_las}}\cr \code{\link{read_dtm}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{read_las}}\cr \code{\link{read_dtm}}\cr
+}
+

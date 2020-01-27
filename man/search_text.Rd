@@ -51,9 +51,10 @@ test=search_text("c:\\\\temp\\\\process_gridmetrics",pattern="2015_Wed_Jul_29_17
 print(test)
 
 }
-\seealso{
-\code{\link{makeCluster}}\cr \code{\link{list.files}}\cr  \code{\link{readLines}}\cr \code{\link{grepl}}\cr
-}
 \author{
 Jacob L Strunk Forest Biometrician(PhD), Statistician (MSc)
 }
+\seealso{
+\code{\link{makeCluster}}\cr \code{\link{list.files}}\cr  \code{\link{readLines}}\cr \code{\link{grepl}}\cr
+}
+

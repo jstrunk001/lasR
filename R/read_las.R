@@ -53,8 +53,10 @@ read_las.character=function(path,n_read=NA){
 
     )
 
-
 }
+
+
+
 
 read_header=function(paths,...){
 
@@ -168,98 +170,109 @@ read_header.character=function(paths){
 
   isLASF <- phb[1, 1] == 'LASF'
 
-  phb['V_Min', 1] <- ifelse(phb['V_Min', 1] == '\001', 1, phb['V_Min', 1])
-  phb['V_Min', 1] <- ifelse(phb['V_Min', 1] == '\002', 2, phb['V_Min', 1])
-  phb['V_Min', 1] <- ifelse(phb['V_Min', 1] == '\003', 3, phb['V_Min', 1])
-  phb['V_Min', 1] <- ifelse(phb['V_Min', 1] == '\004', 4, phb['V_Min', 1])
+  if (!isLASF){
 
-  phb['V_Maj', 1] <- ifelse(phb['V_Maj', 1] == '\001', 1, phb['V_Maj', 1])
-  phb['V_Maj', 1] <- ifelse(phb['V_Maj', 1] == '\002', 2, phb['V_Maj', 1])
-
-  phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\001', 1, phb['Format_ID', 1])
-  phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\002', 2, phb['Format_ID', 1])
-  phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\003', 3, phb['Format_ID', 1])
-  phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\004', 4, phb['Format_ID', 1])
-
-  #laz files mess with format field
-  phb['Format_ID', 1] <- ifelse(as.numeric(phb['Format_ID', 1]) > 127, as.numeric(phb['Format_ID', 1]) - 128, phb['Format_ID', 1])
-
-  if (!isLASF) { warning(path, ' is not a valid LAS/LAZ file') }
-
-  if(phb['V_Min',]=="") phb['V_Min',]=0
-
-  if(as.numeric(phb['V_Maj',])==1 & as.numeric(phb['V_Min',])>3){
-
-    con <- file(path, open = 'rb')
-    rBcon <- readBin(con, 'raw', n = 375, size = 1)
     try(close(con))
+    warning(path, ' is not a valid LAS file')
 
-    phb_add<- data.frame(
-      row.names = c(
-        'st_wdpr'
-        , 'st_vlr'
-        , 'n_vlr'
-        , 'n_pr'
-        , 'n_1'
-        , 'n_2'
-        , 'n_3'
-        , 'n_4'
-        , 'n_5'
-        , 'n_6'
-        , 'n_7'
-        , 'n_8'
-        , 'n_9'
-        , 'n_10'
-        , 'n_11'
-        , 'n_12'
-        , 'n_13'
-        , 'n_14'
-        , 'n_15'
-      ),
-      Value = c(
-        readBin(rBcon[228:235], 'int', size = 8, n = 1)
-        ,readBin(rBcon[236:243], 'int', size = 8, n = 1)
-        ,readBin(rBcon[244:247], 'int', size = 4, n = 1)
-        ,readBin(rBcon[248:255], 'int', size = 8, n = 1)
-
-        ,readBin(rBcon[256:263], 'int', size = 8, n = 1)
-        ,readBin(rBcon[264:271], 'int', size = 8, n = 1)
-        ,readBin(rBcon[272:279], 'int', size = 8, n = 1)
-        ,readBin(rBcon[280:287], 'int', size = 8, n = 1)
-        ,readBin(rBcon[288:295], 'int', size = 8, n = 1)
-        ,readBin(rBcon[296:303], 'int', size = 8, n = 1)
-        ,readBin(rBcon[304:311], 'int', size = 8, n = 1)
-        ,readBin(rBcon[312:319], 'int', size = 8, n = 1)
-        ,readBin(rBcon[320:327], 'int', size = 8, n = 1)
-        ,readBin(rBcon[328:335], 'int', size = 8, n = 1)
-        ,readBin(rBcon[336:343], 'int', size = 8, n = 1)
-        ,readBin(rBcon[344:351], 'int', size = 8, n = 1)
-        ,readBin(rBcon[352:359], 'int', size = 8, n = 1)
-        ,readBin(rBcon[360:367], 'int', size = 8, n = 1)
-        ,readBin(rBcon[368:375], 'int', size = 8, n = 1)
-      )
-      ,stringsAsFactors = FALSE
-    )
-
-    phb <- rbind(phb , phb_add)
-    if(phb["N_all",]==0){
-      phb["N_all",]=phb["n_pr",]
-    }
   }
 
-  isLASF <- phb[1, 1] == 'LASF'
+  if(isLASF){
 
-  phb[17, 1] <- ifelse(phb[17, 1] == '\001', 1, phb[17, 1])
-  phb[17, 1] <- ifelse(phb[17, 1] == '\002', 2, phb[17, 1])
-  phb[17, 1] <- ifelse(phb[17, 1] == '\003', 3, phb[17, 1])
-  phb[17, 1] <- ifelse(phb[17, 1] == '\004', 4, phb[17, 1])
+    phb['V_Min', 1] <- ifelse(phb['V_Min', 1] == '\001', 1, phb['V_Min', 1])
+    phb['V_Min', 1] <- ifelse(phb['V_Min', 1] == '\002', 2, phb['V_Min', 1])
+    phb['V_Min', 1] <- ifelse(phb['V_Min', 1] == '\003', 3, phb['V_Min', 1])
+    phb['V_Min', 1] <- ifelse(phb['V_Min', 1] == '\004', 4, phb['V_Min', 1])
 
-  phb[8, 1] <- ifelse(phb[8, 1] == '\001', 1, phb[8, 1])
-  phb[8, 1] <- ifelse(phb[8, 1] == '\002', 2, phb[8, 1])
+    phb['V_Maj', 1] <- ifelse(phb['V_Maj', 1] == '\001', 1, phb['V_Maj', 1])
+    phb['V_Maj', 1] <- ifelse(phb['V_Maj', 1] == '\002', 2, phb['V_Maj', 1])
 
-  phb[9, 1] <- ifelse(phb[9, 1] == '\001', 1, phb[9, 1])
-  phb[9, 1] <- ifelse(phb[9, 1] == '\002', 2, phb[9, 1])
-  if (!isLASF) {try(close(con)); warning(path, ' is not a valid LAS file') }
+    phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\001', 1, phb['Format_ID', 1])
+    phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\002', 2, phb['Format_ID', 1])
+    phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\003', 3, phb['Format_ID', 1])
+    phb['Format_ID', 1] <- ifelse(phb['Format_ID', 1] == '\004', 4, phb['Format_ID', 1])
+
+    #laz files mess with format field
+    phb['Format_ID', 1] <- ifelse(as.numeric(phb['Format_ID', 1]) > 127, as.numeric(phb['Format_ID', 1]) - 128, phb['Format_ID', 1])
+
+    if (!isLASF) { warning(path, ' is not a valid LAS/LAZ file') }
+
+    if(phb['V_Min',]=="") phb['V_Min',]=0
+
+    if(as.numeric(phb['V_Maj',])==1 & as.numeric(phb['V_Min',])>3){
+
+      con <- file(path, open = 'rb')
+      rBcon <- readBin(con, 'raw', n = 375, size = 1)
+      try(close(con))
+
+      phb_add<- data.frame(
+        row.names = c(
+          'st_wdpr'
+          , 'st_vlr'
+          , 'n_vlr'
+          , 'n_pr'
+          , 'n_1'
+          , 'n_2'
+          , 'n_3'
+          , 'n_4'
+          , 'n_5'
+          , 'n_6'
+          , 'n_7'
+          , 'n_8'
+          , 'n_9'
+          , 'n_10'
+          , 'n_11'
+          , 'n_12'
+          , 'n_13'
+          , 'n_14'
+          , 'n_15'
+        ),
+        Value = c(
+          readBin(rBcon[228:235], 'int', size = 8, n = 1)
+          ,readBin(rBcon[236:243], 'int', size = 8, n = 1)
+          ,readBin(rBcon[244:247], 'int', size = 4, n = 1)
+          ,readBin(rBcon[248:255], 'int', size = 8, n = 1)
+
+          ,readBin(rBcon[256:263], 'int', size = 8, n = 1)
+          ,readBin(rBcon[264:271], 'int', size = 8, n = 1)
+          ,readBin(rBcon[272:279], 'int', size = 8, n = 1)
+          ,readBin(rBcon[280:287], 'int', size = 8, n = 1)
+          ,readBin(rBcon[288:295], 'int', size = 8, n = 1)
+          ,readBin(rBcon[296:303], 'int', size = 8, n = 1)
+          ,readBin(rBcon[304:311], 'int', size = 8, n = 1)
+          ,readBin(rBcon[312:319], 'int', size = 8, n = 1)
+          ,readBin(rBcon[320:327], 'int', size = 8, n = 1)
+          ,readBin(rBcon[328:335], 'int', size = 8, n = 1)
+          ,readBin(rBcon[336:343], 'int', size = 8, n = 1)
+          ,readBin(rBcon[344:351], 'int', size = 8, n = 1)
+          ,readBin(rBcon[352:359], 'int', size = 8, n = 1)
+          ,readBin(rBcon[360:367], 'int', size = 8, n = 1)
+          ,readBin(rBcon[368:375], 'int', size = 8, n = 1)
+        )
+        ,stringsAsFactors = FALSE
+      )
+
+      phb <- rbind(phb , phb_add)
+      if(phb["N_all",]==0){
+        phb["N_all",]=phb["n_pr",]
+      }
+    }
+
+    isLASF <- phb[1, 1] == 'LASF'
+
+    phb[17, 1] <- ifelse(phb[17, 1] == '\001', 1, phb[17, 1])
+    phb[17, 1] <- ifelse(phb[17, 1] == '\002', 2, phb[17, 1])
+    phb[17, 1] <- ifelse(phb[17, 1] == '\003', 3, phb[17, 1])
+    phb[17, 1] <- ifelse(phb[17, 1] == '\004', 4, phb[17, 1])
+
+    phb[8, 1] <- ifelse(phb[8, 1] == '\001', 1, phb[8, 1])
+    phb[8, 1] <- ifelse(phb[8, 1] == '\002', 2, phb[8, 1])
+
+    phb[9, 1] <- ifelse(phb[9, 1] == '\001', 1, phb[9, 1])
+    phb[9, 1] <- ifelse(phb[9, 1] == '\002', 2, phb[9, 1])
+
+
+  }
 
   return(phb)
 

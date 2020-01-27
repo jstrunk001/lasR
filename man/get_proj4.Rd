@@ -39,9 +39,10 @@ get_proj4(c("NAD83(HARN)","Washington","South","ft"))
 
 
 }
-\seealso{
-\code{\link{rgdal}}\cr \code{\link{EPSG}}\cr
-}
 \author{
 Jacob Strunk
 }
+\seealso{
+\code{\link{rgdal}}\cr \code{\link{EPSG}}\cr
+}
+

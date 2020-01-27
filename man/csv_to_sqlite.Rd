@@ -60,9 +60,10 @@ Revision History
    )
 
 }
-\seealso{
-\code{\link{run_gridmetrics}}\cr \code{\link{lasR_project}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{run_gridmetrics}}\cr \code{\link{lasR_project}}\cr
+}
+

@@ -56,23 +56,25 @@ map2tiff=function(tiff_out
 
 }
 
-library(raster)
+if(F){
+  library(raster)
 
-set.seed(55)
+  set.seed(55)
 
-xy=data.frame(x=rnorm(50)*5000+200,y=rnorm(50)*15000+200)
-coordinates(xy)=~x+y
-rtest=raster(ext=extent(xy),res=50)
-rtest[] = rnorm(length(rtest))
-writeRaster(rtest,"c:\\temp\\tiff001.tif",overwrite=T)
+  xy=data.frame(x=rnorm(50)*5000+200,y=rnorm(50)*15000+200)
+  coordinates(xy)=~x+y
+  rtest=raster(ext=extent(xy),res=50)
+  rtest[] = rnorm(length(rtest))
+  writeRaster(rtest,"c:\\temp\\tiff001.tif",overwrite=T)
 
-plot(rtest)
-plot(xy,add=T,pch=16)
+  plot(rtest)
+  plot(xy,add=T,pch=16)
 
-map2tiff(tiff_out="c:\\temp\\maptiff001.tif",ext=extent(rtest))
+  map2tiff(tiff_out="c:\\temp\\maptiff001.tif",ext=extent(rtest))
 
-rdat=raster("c:\\temp\\maptiff001.tif")
-rmap=raster("c:\\temp\\maptiff001.tif")
+  rdat=raster("c:\\temp\\maptiff001.tif")
+  rmap=raster("c:\\temp\\maptiff001.tif")
 
-plot(rmap)
-plot(rdat,add=T,alpha=.5)
+  plot(rmap)
+  plot(rdat,add=T,alpha=.5)
+}

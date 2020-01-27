@@ -28,9 +28,10 @@ Revision History
  #none yet
 
 }
-\seealso{
-\code{\link{scan_las}}\cr \code{\link{read_las}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{scan_las}}\cr \code{\link{read_las}}\cr
+}
+

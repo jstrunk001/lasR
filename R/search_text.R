@@ -1,9 +1,9 @@
 
-#'@title 
+#'@title
 #'search for string in text files in a directory
 #'
 
-#'@description 
+#'@description
 #'
 #'search for string in text files in a directory
 
@@ -64,10 +64,10 @@ search_text=function(
   ,file=NA
   ,pattern=".r"
   ,pattern_omit=c(NA,"dev_")
-  ,recursive=T  
+  ,recursive=T
   ,clus=NA
 ){
-  require(plyr)
+  if(interactive()) require(plyr)
 
 
   if(is.na(file)){
@@ -75,28 +75,28 @@ search_text=function(
     #get files if file not provide
     files=list.files(directory,pattern=pattern,recursive=recursive,full.names=T, ignore.case=T)
     if(length(files)==0) stop("no files with the designated pattern found")
-    if(!is.na(pattern_omit[1])) files=grep(pattern_omit[1],files,invert=TRUE,value=T)    
+    if(!is.na(pattern_omit[1])) files=grep(pattern_omit[1],files,invert=TRUE,value=T)
     if(length(files)==0) stop("no files without the designated pattern_omit found")
-    
+
     if(is.na(clus[1])){
 
       res=mapply(search_text,file=files,pattern=pattern,match_string=match_string,recursive=recursive)
-      
+
     }else{
-      
+
       require(parallel)
       if(is.numeric(clus)) clus_in=makeCluster(clus)
       else clus_in=clus
-      
+
       res=clusterMap(clus_in,search_text,pattern=pattern,match_string=match_string,recursive=recursive,SIMPLIFY=F)
       if(is.numeric(clus)) stopCluster(clus_in)
     }
 
-      res=rbind.fill(res) 
+      res=rbind.fill(res)
       if(is.null(res[1])) res=empty_df(c("file","matches"))
-    
+
   }else{
-    
+
     text=suppressWarnings(readLines(file))
     matches_in=which(grepl(match_string,text))
     res=NULL

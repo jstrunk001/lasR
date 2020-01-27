@@ -2,14 +2,14 @@
 % Please edit documentation in R/ols_modeling.R
 \name{OLS_modeling}
 \alias{OLS_modeling}
-\alias{reg_model}
 \alias{lm_boot}
-\alias{many_boots}
-\alias{reg_multi}
-\alias{mod_multi}
-\alias{pred_multi}
-\alias{multi_bs}
 \alias{lm_summary}
+\alias{many_boots}
+\alias{mod_multi}
+\alias{multi_bs}
+\alias{pred_multi}
+\alias{reg_model}
+\alias{reg_multi}
 \title{functions related to modeling}
 \usage{
 reg_model(dat_yx, reg_obj, rank = 1, rank_by = c("bic", "rsq", "rss",
@@ -171,9 +171,10 @@ Revision History
 
 
 }
-\seealso{
-\code{\link{regsubsets}}\cr
-}
 \author{
 Jacob Strunk <Jacob.strunk@dnr.wa.gov>
 }
+\seealso{
+\code{\link{regsubsets}}\cr
+}
+

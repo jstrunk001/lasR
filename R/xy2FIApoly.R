@@ -22,8 +22,8 @@
 #'Jacob Strunk <Jstrunk@@fs.fed.us>
 #'
 #'@param idxy dataframe with id, x, y columns available
-#'@param names
-#'@param create_polys
+#'@param names link dataframe columns to variable names used by funciton
+#'@param create_polys TRUE / FALSE
 #'
 #'@return
 #'  <Delete and Replace>
@@ -34,7 +34,7 @@
 #'    spplot(res[1,],zcol=1,aspect=1,scales=list(draw=T),key.space=list(x=0.2,y=0.9,corner=c(0,1)))
 #'    spplot(res)
 #'
-#'@import some_package,some_package2
+#'@import plyr raster sp rgeos
 #'
 #'@export
 #
@@ -54,7 +54,7 @@
 xy2FIApoly=function(idxy,names=c(plot="plot",x="x",y="y"),create_polys=T){
 
   # sqrt((120*cos(pi/6))^2+(120*sin(pi/6))^2)
-  require(plyr)
+  if(interactive()) require(plyr)
 
   names["subplot"]="subplot"
   idxy[,names["subplot"]]=1
@@ -78,7 +78,7 @@ xy2FIApoly=function(idxy,names=c(plot="plot",x="x",y="y"),create_polys=T){
 
   if(create_polys){
 
-    library(raster);library(sp);library(rgeos)
+    if(interactive()) library(raster);library(sp);library(rgeos)
     datin0=df_all
     coordinates(datin0)=datin0[,names[c("x","y")]]
     datin1=gBuffer(datin0,width=24,byid=T)

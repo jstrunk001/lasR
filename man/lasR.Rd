@@ -25,9 +25,10 @@ Revision History
 #stuff
 
 }
-\seealso{
-\code{\link{lidR}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{lidR}}\cr
+}
+

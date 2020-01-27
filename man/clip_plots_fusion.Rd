@@ -49,9 +49,10 @@ res=clip_plots_fusion(
 
 
 }
-\seealso{
-\code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+}
+

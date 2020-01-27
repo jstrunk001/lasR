@@ -49,9 +49,10 @@ many_dtms=read_dtm_header(dir_dtm="c:\\\\temp\\\\dtm_files" ,out_file="c:\\\\tem
 one_dtm=read_dtm_header("//dnrgpoly112/e$/rs_prototype/dtm/dtm_files/38_58.dtm")
 
 }
-\seealso{
-\code{\link{read_las}}\cr
-}
 \author{
 Jacob Strunk
 }
+\seealso{
+\code{\link{read_las}}\cr
+}
+
