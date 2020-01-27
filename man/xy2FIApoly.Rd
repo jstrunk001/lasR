@@ -38,9 +38,10 @@ Revision History
    spplot(res)
 
 }
-\seealso{
-\code{\link{bbox2polys}}\cr
-}
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
 }
+\seealso{
+\code{\link{bbox2polys}}\cr
+}
+
