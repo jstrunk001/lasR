@@ -19,11 +19,11 @@ Suggests:
   leaps,
   lidR,
   maptools,
-  ander,
   plyr,
   raster,
   rgdal,
   rgeos,
   sp,
   tools,
-  uuid
+  uuid,
+  pander
