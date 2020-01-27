@@ -4,10 +4,26 @@
 \alias{gridmetrics}
 \title{summarize lidar for raster pixels}
 \usage{
-gridmetrics(las_files, dtm_files = NA, dtm_folder = NA, dtm_ext = ".dtm",
-  no_dtm = F, fun = compute_metrics2, xmin = NA, xmax = NA, ymin = NA,
-  ymax = NA, res = 66, grid = NA, n_read = NA, out_name = NA,
-  return = F, con = NA, out_table = NA, ...)
+gridmetrics(
+  las_files,
+  dtm_files = NA,
+  dtm_folder = NA,
+  dtm_ext = ".dtm",
+  no_dtm = F,
+  fun = compute_metrics2,
+  xmin = NA,
+  xmax = NA,
+  ymin = NA,
+  ymax = NA,
+  res = 66,
+  grid = NA,
+  n_read = NA,
+  out_name = NA,
+  return = F,
+  con = NA,
+  out_table = NA,
+  ...
+)
 }
 \arguments{
 \item{las_files}{list of paths to las files}
@@ -58,10 +74,9 @@ metrics=gridmetrics(las_files=las_files,dtm_files=dtm_files)
 head(metrics)
 
 }
-\author{
-Jacob Strunk <Jstrunk@fs.fed.us>
-}
 \seealso{
 \code{\link{read_las}}\cr \code{\link{read_dtm}}\cr
 }
-
+\author{
+Jacob Strunk <Jstrunk@fs.fed.us>
+}

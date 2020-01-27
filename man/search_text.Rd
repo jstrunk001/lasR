@@ -4,9 +4,15 @@
 \alias{search_text}
 \title{search for string in text files in a directory}
 \usage{
-search_text(match_string = "", directory = NA, file = NA,
-  pattern = ".r", pattern_omit = c(NA, "dev_"), recursive = T,
-  clus = NA)
+search_text(
+  match_string = "",
+  directory = NA,
+  file = NA,
+  pattern = ".r",
+  pattern_omit = c(NA, "dev_"),
+  recursive = T,
+  clus = NA
+)
 }
 \arguments{
 \item{match_string}{string to find within searched files}
@@ -51,10 +57,9 @@ test=search_text("c:\\\\temp\\\\process_gridmetrics",pattern="2015_Wed_Jul_29_17
 print(test)
 
 }
-\author{
-Jacob L Strunk Forest Biometrician(PhD), Statistician (MSc)
-}
 \seealso{
 \code{\link{makeCluster}}\cr \code{\link{list.files}}\cr  \code{\link{readLines}}\cr \code{\link{grepl}}\cr
 }
-
+\author{
+Jacob L Strunk Forest Biometrician(PhD), Statistician (MSc)
+}

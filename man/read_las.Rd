@@ -32,10 +32,9 @@ Revision History
    print(read_header(files))
 
 }
-\author{
-Jacob Strunk <Jstrunk@fs.fed.us>
-}
 \seealso{
 \code{\link{read_dtm}}\cr \code{\link{gridmetrics}}\cr
 }
-
+\author{
+Jacob Strunk <Jstrunk@fs.fed.us>
+}

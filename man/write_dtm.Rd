@@ -34,10 +34,9 @@ Revision History
  write_dtm(dtm=dtm1,dir_out="c:\\\\temp\\\\36_63_b.dtm")
 
 }
-\author{
-Jacob Strunk <jstrunk@fs.fed.us>
-}
 \seealso{
 \code{\link{read_las}}\cr
 }
-
+\author{
+Jacob Strunk <jstrunk@fs.fed.us>
+}

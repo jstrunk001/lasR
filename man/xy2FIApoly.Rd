@@ -4,13 +4,14 @@
 \alias{xy2FIApoly}
 \title{convert xy coordinates to fia plots}
 \usage{
-xy2FIApoly(idxy, names = c(plot = "plot", x = "x", y = "y"),
-  create_polys = T)
+xy2FIApoly(idxy, names = c(plot = "plot", x = "x", y = "y"), create_polys = T)
 }
 \arguments{
 \item{idxy}{dataframe with id, x, y columns available}
 
-\item{create_polys}{}
+\item{names}{link dataframe columns to variable names used by funciton}
+
+\item{create_polys}{TRUE / FALSE}
 }
 \value{
 <Delete and Replace>
@@ -38,10 +39,9 @@ Revision History
    spplot(res)
 
 }
-\author{
-Jacob Strunk <Jstrunk@fs.fed.us>
-}
 \seealso{
 \code{\link{bbox2polys}}\cr
 }
-
+\author{
+Jacob Strunk <Jstrunk@fs.fed.us>
+}

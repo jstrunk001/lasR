@@ -32,10 +32,9 @@ Revision History
  <Delete and Replace>
 
 }
-\author{
-Jacob Strunk <Jstrunk@fs.fed.us>
-}
 \seealso{
 \code{\link{pander}}\cr
 }
-
+\author{
+Jacob Strunk <Jstrunk@fs.fed.us>
+}

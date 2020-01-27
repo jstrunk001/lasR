@@ -4,17 +4,37 @@
 \alias{run_gridmetrics}
 \title{run gridmetrics across a project}
 \usage{
-run_gridmetrics(lasR_project = NA, lasR_project_gpkg = NA,
-  dir_out = "c:/temp/test_project/gridmetrics", n_core = 4,
-  gridmetrics_path = "c:\\\\fusion1\\\\gridmetrics.exe", heightbreak = 6,
-  cellsize = 66, minht = 6, first = T, intensity = F, outlier = c(-5,
-  400), fusion_switches = "/nointensity /first", xmn = 561066,
-  xmx = 2805066, ymn = 33066, ymx = 1551066, fun = compute_metrics2,
-  temp = "c:\\\\temp\\\\run_gridmetrics\\\\", fast_cache = NA,
-  n_cache = 90, dir_dtm = NA, dir_las = NA, skip_existing = T,
-  con = NA, table = "gridmetrics", existing_coms = c(NA,
-  "C:\\\\Temp\\\\run_gridmetrics\\\\2017Aug17_100740\\\\all_commands.txt"),
-  debug = F, ...)
+run_gridmetrics(
+  lasR_project = NA,
+  lasR_project_gpkg = NA,
+  dir_out = "c:/temp/test_project/gridmetrics",
+  n_core = 4,
+  gridmetrics_path = "c:\\\\fusion1\\\\gridmetrics.exe",
+  heightbreak = 6,
+  cellsize = 66,
+  minht = 6,
+  first = T,
+  intensity = F,
+  outlier = c(-5, 400),
+  fusion_switches = "/nointensity /first",
+  xmn = 561066,
+  xmx = 2805066,
+  ymn = 33066,
+  ymx = 1551066,
+  fun = compute_metrics2,
+  temp = "c:\\\\temp\\\\run_gridmetrics\\\\",
+  fast_cache = NA,
+  n_cache = 90,
+  dir_dtm = NA,
+  dir_las = NA,
+  skip_existing = T,
+  con = NA,
+  table = "gridmetrics",
+  existing_coms = c(NA,
+    "C:\\\\Temp\\\\run_gridmetrics\\\\2017Aug17_100740\\\\all_commands.txt"),
+  debug = F,
+  ...
+)
 }
 \arguments{
 \item{lasR_project}{csv file of intersections created by lasR_project() function}
@@ -93,10 +113,9 @@ lasR_project_poly="D:\\\\projects\\\\2017_WA_DSM_Pilot_usgs\\\\2017Aug_NAIP_usgs
 
 
 }
-\author{
-Jacob Strunk <Jstrunk@fs.fed.us>
-}
 \seealso{
 \code{\link{lasR_project}}\cr \code{\link{gridmetrics}}\cr
 }
-
+\author{
+Jacob Strunk <Jstrunk@fs.fed.us>
+}

@@ -4,8 +4,14 @@
 \alias{lasR_subset}
 \title{subset tiles in a lasR project}
 \usage{
-lasR_subset(path_project, path_shapefile, dir_out = "", ignore_proj4 = T,
-  return = F, plot = T)
+lasR_subset(
+  path_project,
+  path_shapefile,
+  dir_out = "",
+  ignore_proj4 = T,
+  return = F,
+  plot = T
+)
 }
 \arguments{
 \item{path_project}{path to project file}
@@ -39,10 +45,9 @@ Revision History
  )
 
 }
-\author{
-Jacob Strunk <Jstrunk@fs.fed.us>
-}
 \seealso{
 \code{\link{lasR_project}}\cr \code{\link{scan_las}}\cr \code{\link{scan_dtm}}\cr
 }
-
+\author{
+Jacob Strunk <Jstrunk@fs.fed.us>
+}
