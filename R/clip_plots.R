@@ -44,7 +44,7 @@
 #'@examples
 #'  <Delete and Replace>
 #'
-#'@import some_package,some_package2
+#'@import rgdal plyr rgeos raster lidR data.table parallel
 #'
 #'@export
 #
@@ -52,8 +52,6 @@
 
 #Desired upgrades to this function:
 #
-#
-
 # x = function(x){}
 
 #copy function arguments and use this code to format arguments
@@ -80,14 +78,16 @@ clip_plots=function(
   ,fix_dsm_bug = F # laz files for hood canal DSMs are screwed up
 
 ){
-  require(rgdal)
-  require(plyr)
-  require(rgdal)
-  require(rgeos)
-  require(raster)
-  require(lidR)
-  require(data.table)
-  require(parallel)
+  if(interactive()){
+    require(rgdal)
+    require(plyr)
+    require(rgdal)
+    require(rgeos)
+    require(raster)
+    require(lidR)
+    require(data.table)
+    require(parallel)
+  }
 
   if(!file.exists(dir_out)) try(dir.create(dir_out, recursive=T),silent=T)
   dir_skip=file.path(dir_out,"skip")
@@ -281,7 +281,7 @@ clip_plots=function(
 }
 
 .fn_merge=function(x){
-  require(data.table)
+  if(interactive()){ require(data.table)}
   if(class(x)=="list") x_in=data.frame(rbindlist(lapply(x,.fn_merge)))
   else{
     x_in=x[1,]
@@ -300,14 +300,15 @@ clip_plots=function(
 
 .try_clip_plots=function(...){
 
-  require(lasR)
+  #require(lasR)
 
   .clip_plots=function(x,id,dir_out,return=F,height=T, fix_dsm_bug = F){
 
-    require(lidR)
-    require(lasR)
-    require(plyr)
-
+    if(interactive()){
+      require(lidR)
+      #require(lasR)
+      require(plyr)
+    }
     print()
     las_files_in = grep("[.]la.$",as.character(unlist(strsplit(x@data[,"las_file"],",")[1])),value=T)
     dtm_files_in = grep("[.].{,4}$",unlist(strsplit(x@data[,"dtm_file"],",")[1]),value=T)

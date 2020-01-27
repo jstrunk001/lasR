@@ -42,7 +42,7 @@
 #'    test2 = lasmetrics(las1,experimental_metrics(X,Y,Z))
 #'    test2
 #'
-#'@import some_package,some_package2
+#@import some_package,some_package2
 #'
 #'@export
 #

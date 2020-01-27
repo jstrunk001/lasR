@@ -35,7 +35,7 @@
 #'  ,dir_out="C:\\projects\\2017_WA_DSM_Pilot\\DSM_Pilot_A_lasR\\subset_project\\"
 #'  )
 #'
-#'@import rgdal,rgeos
+#'@import rgdal rgeos
 #'
 #'@export
 #

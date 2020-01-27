@@ -76,6 +76,7 @@ Revision History
    test2 = lasmetrics(las1,experimental_metrics(X,Y,Z))
    test2
 
+
 }
 \seealso{
 \code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr

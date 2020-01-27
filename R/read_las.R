@@ -28,7 +28,7 @@
 #'    print(read_header("C:\\temp\\lidar_test\\183_302.las"))
 #'    print(read_header(files))
 #'
-#'@import tools, sp
+#'@import tools sp
 #'
 #export
 #

@@ -76,7 +76,7 @@ clip_plots_fusion=function(
 ){
 
   proc_time=format(Sys.time(),"%Y%b%d_%H%M%S")
-  require(parallel)
+  if(interactive()){require(parallel)}
   if(is.na(dir_las)) stop("dir_las not provided")
   if(is.na(dir_out)){
     warning("dir_out not provided, using temp:",temp)
@@ -125,7 +125,7 @@ clip_plots_fusion=function(
 
   #run commands
   if(run){
-    require(parallel)
+    if(interactive()){require(parallel)}
     clus=makeCluster(n_core)
     res=parLapply(clus,cmds,shell);gc()
     gc();stopCluster(clus);gc()

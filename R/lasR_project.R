@@ -56,7 +56,7 @@
 #' )
 #'
 #'
-#'@import DBI, RSQLite, data.table, rgdal, rgeos, sp, raster
+#'@import DBI RSQLite data.table rgdal rgeos sp raster
 #'
 #'@export
 #

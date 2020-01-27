@@ -41,7 +41,7 @@
 #' metrics=gridmetrics(las_files=las_files,dtm_files=dtm_files)
 #' head(metrics)
 #'
-#'@import raster, plyr, data.table, rgeos, lidR, DBI
+#'@import raster plyr data.table rgeos lidR DBI
 #'
 #'@export
 #'@seealso \code{\link{read_las}}\cr \code{\link{read_dtm}}\cr

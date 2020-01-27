@@ -32,7 +32,7 @@
 #'@examples
 #'  <Delete and Replace>
 #'
-#'@import maptools, sp, uuid
+#'@import maptools sp uuid
 #'
 #'@export
 #

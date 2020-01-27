@@ -30,7 +30,7 @@
 #'  dtm1=read_dtm("C:\\Temp\\36_63.dtm")
 #'  write_dtm(dtm=dtm1,dir_out="c:\\temp\\36_63_b.dtm")
 #'
-#'@import raster, Thermimage
+#'@import raster Thermimage
 #
 #'@seealso \code{\link{read_las}}\cr
 

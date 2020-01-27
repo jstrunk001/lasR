@@ -70,7 +70,7 @@ csv_to_sqlite=function(db
                        ,use_col_classes=T
                        ){
 
-  require(RSQLite)
+  if(interactive()) require(RSQLite)
 
   csv_files=list.files(csv_folder,full.names=T,pattern="[.]csv")
 

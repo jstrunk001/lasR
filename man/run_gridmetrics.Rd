@@ -112,6 +112,7 @@ lasR_project_poly="D:\\\\projects\\\\2017_WA_DSM_Pilot_usgs\\\\2017Aug_NAIP_usgs
 )
 
 
+
 }
 \seealso{
 \code{\link{lasR_project}}\cr \code{\link{gridmetrics}}\cr
