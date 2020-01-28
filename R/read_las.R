@@ -174,7 +174,7 @@ read_header.character=function(paths){
 
     try(close(con))
     warning(path, ' is not a valid LAS file')
-
+    phb[,]=NA
   }
 
   if(isLASF){
