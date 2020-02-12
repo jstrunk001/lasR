@@ -7,7 +7,7 @@
 #'
 #'@details
 #'
-#' the DEM format is an unusual raster format used only by (and required by) FUSION gridmetrics. SInce it is
+#' the DEM format is a niche raster format used only by (and required by) FUSION gridmetrics. SInce it is
 #' required and we extensively use FUSION (esp gridmetrics) we need the ability to interact with this file format.
 #'
 #'\cr
@@ -42,10 +42,10 @@ write_dtm=function(
   ,zfmt=NA
 ){
 
-    library(raster)
-    library(Thermimage)
+    #require(raster)
+    #require(Thermimage)
 
-    if(!class(dtm)=="RasterLayer") dtm=raster(dtm)
+    if(!class(dtm)=="RasterLayer") dtm = raster::raster(dtm)
 
     #crosswalk raster and fusion types
     type_cw=c(
@@ -94,7 +94,7 @@ write_dtm=function(
       #get data size as a function of input formats - fusion only has a limted number of formats
       dtm_size=c(2,4,4,8)[zfmt+1]
       #flip data vertically
-      vec_dtm=as.vector(flip.matrix(raster::as.matrix(dtm)))
+      vec_dtm=as.vector(Thermimage::flip.matrix(raster::as.matrix(dtm)))
       #assign NA
       vec_dtm[is.na(vec_dtm)] = NA_val
       #cast data to integer if necessary
