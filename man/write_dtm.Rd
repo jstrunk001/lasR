@@ -20,7 +20,7 @@ Null, data is written to file
 write USDA FUSION format raster
 }
 \details{
-the DEM format is an unusual raster format used only by (and required by) FUSION gridmetrics. SInce it is
+the DEM format is a niche raster format used only by (and required by) FUSION gridmetrics. SInce it is
 required and we extensively use FUSION (esp gridmetrics) we need the ability to interact with this file format.
 
 \cr

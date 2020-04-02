@@ -30,7 +30,7 @@
 #'@examples
 #'  <Delete and Replace>
 #'
-#'@import RODBC plyr
+#'@import RODBC plyr odbc lubridate
 #'
 #'@export
 #
@@ -103,9 +103,9 @@ writeMSAccess_odbc = function(db
                          , doDebug=F
 ){
 
-  require(odbc)
-  require(DBI)
-  require(lubridate)
+  # require(odbc)
+  # require(DBI)
+  # require(lubridate)
 
   if(doDebug) browser()
   nm_temp = paste(nm,"XXXX",sep="")

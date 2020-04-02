@@ -104,6 +104,7 @@ Revision History
 Revision History
 \tabular{ll}{
 1.0 \tab 3/28/2017 Created \cr
+1.1 \tab 3/17/2020 force users to use either geopackage or shapefile \cr
 }
 }
 \examples{
