@@ -11,6 +11,7 @@
 #'Revision History
 #' \tabular{ll}{
 #'1.0 \tab 3/28/2017 Created \cr
+#'1.1 \tab 3/17/2020 force users to use either geopackage or shapefile \cr
 #'}
 #'
 #'@author
@@ -81,6 +82,7 @@ lasR_project=function(
   ,crs="+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs"
   ,mask=NA
   ,return=F
+
 ){
   Sys.time()
   require("DBI")
@@ -182,10 +184,6 @@ print("Merge");print(Sys.time())
   bbx=data.frame(mnx=crd[,"x"]-ts2,mny=crd[,"y"]-ts2,mxx=crd[,"x"]+ts2,mxy=crd[,"y"]+ts2)
   tiles_bbx=data.frame(tiles_coords,bbx)
 
-  #plot(crd[,"x"],crd[,"y"])
-
-  #save everything to sqlite database?
-
   #create polys from bboxs and write to file
   tile_polys0=bbox2polys(tiles_bbx[,c("tile_id","mnx","mxx","mny","mxy")])
   row.names(tiles_bbx)=tiles_bbx[,c("tile_id")]
@@ -194,11 +192,16 @@ print("Merge");print(Sys.time())
   #write project to file
   #write polygons
   n_err=0
-  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent=T)
+  #write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent=T)
+  write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d.gpkg", n_err+1), driver="GPKG"),silent=T)
 
   if(class(write_test)=="try-error"){
-    n_err=length(list.files(project_path,"lasR_project.*shp"))
-    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent = T)
+
+    #n_err=length(list.files(project_path,"lasR_project.*shp"))
+    #write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d", n_err+1), driver="ESRI Shapefile"),silent = T)
+
+    n_err=length(list.files(project_path,"lasR_project.*gpkg"))
+    write_test=try(writeOGR(tile_polys1, project_path, sprintf("lasR_project%03d.gpkg", n_err+1), driver="GPKG"),silent=T)
   }
   if(class(write_test)=="try-error"){
     warning("Error trying to write lasR_project geometry",write_test)

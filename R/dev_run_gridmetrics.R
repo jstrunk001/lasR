@@ -131,19 +131,14 @@ run_gridmetrics=function(
 
  #load lasR_project
   if(!is.na(lasR_project_csv) & is.na(lasR_project_gpkg[1])){
-    if(is.data.frame(lasR_project_csv)){
-      proj=lasR_project_csv
-      proj_polys0=bbox2polys(proj[,c("tile_id","mnx","mxx","mny","mxy")])
-      row.names(proj)=proj[,"tile_id"]
-      proj_polys=SpatialPolygonsDataFrame(proj_polys0,proj)
-    }
-    if(!is.data.frame(lasR_project_csv))if(is.null(attributes(class(lasR_project_csv)))){
+
+    if(is.null(attributes(class(lasR_project_csv)))){
       proj=read.csv(lasR_project_csv)
       proj_polys0=bbox2polys(proj[,c("tile_id","mnx","mxx","mny","mxy")])
       row.names(proj)=proj[,"tile_id"]
       proj_polys=SpatialPolygonsDataFrame(proj_polys0,proj)
     }
-    if(!is.null(attributes(class(lasR_project_csv)))) if(attributes(class(lasR_project_csv)) == "sp") proj_polys=lasR_project_csv
+    if(!is.null(attributes(class(lasR_project_csv)))) if(attributes(class(lasR_project_csv)) == "sp") proj_polys=lasR_project
   }
 
   # if(!is.na(lasR_project_polys[1])){

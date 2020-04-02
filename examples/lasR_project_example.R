@@ -80,7 +80,7 @@ if(F){
     ,do_scan_dtms=T
     ,do_scan_las=T
     ,tile_size=3300
-    ,pixel_size=66
+    ,pixel_size=100
     ,xmn=561066,xmx=2805066,ymn=33066,ymx=1551066
     ,crs="+proj=lcc +lat_1=47.33333333333334 +lat_2=45.83333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0001016001 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=us-ft +no_defs"
   )
@@ -148,6 +148,8 @@ if(F){
     ,dir_las="G:\\NAIP_dsm_2015\\las_files\\"
     ,n_core=15
     ,existing_coms="C:\\Temp\\run_gridmetrics\\2017Aug19_141611\\all_commands.txt"
+    ,gridmetrics_path="c:\\fusion\\gridmetrics.exe"
+
   )
 
 }
