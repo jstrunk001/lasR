@@ -61,31 +61,55 @@ sqlite_to_raster = function(
   ,crs = NA
   ,nProc = 10
   ,doDebug=F
+  ,doBuild=F
 
 ){
+
+
+  if(doBuild & F){
+
+    dimsxy=c(1000,1000)
+    r0 = raster::raster( nrows=dimsxy[1], ncols=dimsxy[2], xmn=0, xmx=dimsxy[1], ymn=0, ymx=dimsxy[2])
+    ids = 1:length(r0)
+    r0[] = ids
+    timesA = timesB = list()
+    xyz_test = as.data.frame(r0,xy=T)
+    #for approach A we only need to make the "holder" raster 1x, and then repeatedly load id values
+    r0_test = raster::rasterFromXYZ(xyz_test[,c(1:2)])
+
+    r0_test[] = -9999
+    for(i in 1:50){
+      timesA = c( timesA, system.time( { r0_test[] = ids})["elapsed"] )
+      timesB = c( timesB, system.time({r0_test = raster::rasterFromXYZ(xyz_test[,c(1:3)] ) }  )["elapsed"])
+    }
+    summary( unlist(timesA ))
+    summary( unlist(timesB ))
+    browser()
+  }
+
   debugRows = 50000
-  if(!dir.exists(dirOut))dir.create(dirOut,recursive = T)
   require(raster)
   if(doDebug) xy = dbGetQuery(db,paste("select",paste(colsxy,collapse=","),"from",tb_csv,"limit",debugRows))
   else xy = dbGetQuery(db,paste("select",paste(colsxy,collapse=","),"from",tb_csv))
-
+  if(!dir.exists(dirOut)) dir.create(dirOut)
+  #browser()
   raster::beginCluster(nProc)
+
+  r0 = raster::rasterFromXYZ(xy)
+  xy1 = xy
+  coordinates(xy) = xy[,colsxy]
+  ids = raster::cellFromXY(r0, xy1)
+  r0[] = -9999
 
   for(i in 1:length(cols2Raster)){
 
     print(paste("start:",cols2Raster[i],"at",Sys.time()))
     if(doDebug) dati = dbGetQuery(db,paste("select",cols2Raster[i],"from",tb_csv,"limit",debugRows))
-    if(!doDebug) dati = dbGetQuery(db,paste("select",cols2Raster[i],"from",tb_csv))
-    datixy = cbind(xy,dati)
-    #datixy[datixy[,3] == ,3]
+    else dati = dbGetQuery(db,paste("select",cols2Raster[i],"from",tb_csv))
 
-    ri = try(raster::rasterFromXYZ(datixy))
-    if(class(ri) == "RasterLayer") {
-      crs(ri) = crs
-      ri[ri[] ==  -9999] = NA
-      outi = file.path(dirOut,paste(cols2Raster[i],format,sep=""))
-      raster::writeRaster(ri,outi,overwrite=TRUE,crs = crs)
-    }
+    r0[ids] = dati[,1]
+    outi = file.path(dirOut,paste(cols2Raster[i],format,sep=""))
+    raster::writeRaster(r0,outi,overwrite=TRUE,crs = crs)
 
     print(paste("complete:",cols2Raster[i],"at",Sys.time()))
 
@@ -95,5 +119,5 @@ sqlite_to_raster = function(
 
 }
 
-
+#sqlite_to_raster()
 

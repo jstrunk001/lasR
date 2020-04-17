@@ -47,7 +47,7 @@ Revision History
 
 }
 \seealso{
-\code{\link{raster::rasterFromXYZ}}\cr \code{\link{raster::writeRaster}}\cr
+\code{\link{rasterFromXYZ}}\cr \code{\link{writeRaster}}\cr
 }
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>
