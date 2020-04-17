@@ -4,7 +4,8 @@
 \alias{xy2FIApoly}
 \title{convert xy coordinates to fia plots}
 \usage{
-xy2FIApoly(idxy, names = c(plot = "plot", x = "x", y = "y"), create_polys = T)
+xy2FIApoly(idxy, names = c(plot = "plot", x = "x", y = "y"),
+  create_polys = T)
 }
 \arguments{
 \item{idxy}{dataframe with id, x, y columns available}

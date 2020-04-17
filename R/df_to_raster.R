@@ -1,5 +1,5 @@
 #'@title
-#'  Convert columns of metrics to rasters
+#'  Convert columns of metrics in a data.frame to rasters, requires
 #'
 #'@description
 #'  <Delete and Replace>
@@ -17,8 +17,7 @@
 #'
 #'Jacob Strunk <Jstrunk@@fs.fed.us>
 #'
-#'@param db a database object, tested for sqlite database
-#'@param tb_csv which table has data
+#'@param df a dataframe with xy and columns to use in making a rasters
 #'@param colsxy  names of xy columns
 #'@param cols2Raster which columns to grab
 #'@param format  raster formate  e.g. .tif , .img etc
@@ -45,10 +44,8 @@
 #
 #
 
-
-sqlite_to_raster = function(
-  db
-  ,tb_csv="gm"
+df_to_raster = function(
+  df
   ,colsxy = c("center_x","center_y")
   ,cols2Raster = c(colsSomeX)
   ,format = ".img"
@@ -56,53 +53,34 @@ sqlite_to_raster = function(
   ,crs = NA
   ,nProc = 10
   ,doDebug=F
-  ,doBuild=F
 
 ){
-
-
-  if(doBuild & F){
-
-    dimsxy=c(1000,1000)
-    r0 = raster::raster( nrows=dimsxy[1], ncols=dimsxy[2], xmn=0, xmx=dimsxy[1], ymn=0, ymx=dimsxy[2])
-    ids = 1:length(r0)
-    r0[] = ids
-    timesA = timesB = list()
-    xyz_test = as.data.frame(r0,xy=T)
-    #for approach A we only need to make the "holder" raster 1x, and then repeatedly load id values
-    r0_test = raster::rasterFromXYZ(xyz_test[,c(1:2)])
-
-    r0_test[] = -9999
-    for(i in 1:50){
-      timesA = c( timesA, system.time( { r0_test[] = ids})["elapsed"] )
-      timesB = c( timesB, system.time({r0_test = raster::rasterFromXYZ(xyz_test[,c(1:3)] ) }  )["elapsed"])
-    }
-    summary( unlist(timesA ))
-    summary( unlist(timesB ))
-    browser()
-  }
+  bad_rows = is.na(df[,colsxy[1]]) | is.na(df[,colsxy[2]])
+  warning("df has ",sum(bad_rows)," bad rows (NA in x or y values) - observation(s) removed")
 
   debugRows = 50000
   require(raster)
-  if(doDebug) xy = dbGetQuery(db,paste("select",paste(colsxy,collapse=","),"from",tb_csv,"limit",debugRows))
-  else xy = dbGetQuery(db,paste("select",paste(colsxy,collapse=","),"from",tb_csv))
+  if(doDebug) xy = df[!bad_rows,colsxy][1:debugRows,]
+  else xy = df[!bad_rows,colsxy]
   if(!dir.exists(dirOut)) dir.create(dirOut)
-  #browser()
+
   raster::beginCluster(nProc)
 
   r0 = raster::rasterFromXYZ(xy)
   xy1 = xy
   coordinates(xy) = xy[,colsxy]
   ids = raster::cellFromXY(r0, xy1)
-  r0[] = -9999
+  browser()
+  r0[] = NA
+  crs(r0) = crs
 
   for(i in 1:length(cols2Raster)){
 
     print(paste("start:",cols2Raster[i],"at",Sys.time()))
-    if(doDebug) dati = dbGetQuery(db,paste("select",cols2Raster[i],"from",tb_csv,"limit",debugRows))
-    else dati = dbGetQuery(db,paste("select",cols2Raster[i],"from",tb_csv))
+    # if(doDebug) dati = dbGetQuery(db,paste("select",cols2Raster[i],"from",tb_csv,"limit",debugRows))
+    # else dati = dbGetQuery(db,paste("select",cols2Raster[i],"from",tb_csv))
 
-    r0[ids] = dati[,1]
+    r0[ids] = df[!bad_rows,cols2Raster[i]]
     outi = file.path(dirOut,paste(cols2Raster[i],format,sep=""))
     raster::writeRaster(r0,outi,overwrite=TRUE,crs = crs)
 

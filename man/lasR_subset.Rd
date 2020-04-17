@@ -4,14 +4,8 @@
 \alias{lasR_subset}
 \title{subset tiles in a lasR project}
 \usage{
-lasR_subset(
-  path_project,
-  path_shapefile,
-  dir_out = "",
-  ignore_proj4 = T,
-  return = F,
-  plot = T
-)
+lasR_subset(path_project, path_shapefile, dir_out = "",
+  ignore_proj4 = T, return = F, plot = T)
 }
 \arguments{
 \item{path_project}{path to project file}
